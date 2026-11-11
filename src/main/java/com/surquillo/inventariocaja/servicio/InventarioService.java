@@ -53,6 +53,8 @@ public class InventarioService {
         SaldoStock.validarCantidad(minimo, saldo.permiteFraccion());
         return saldo.disponible().compareTo(minimo) <= 0;
     }
+    public void configurarMinimo(ClaveStock clave,BigDecimal minimo) { repositorio.configurarMinimo(clave,minimo); }
+    public boolean stockBajo(ClaveStock clave) { return stockBajo(clave,repositorio.minimo(clave)); }
 
     private StockRepository.Estado cambiar(UUID id, ClaveStock clave, Tipo tipo, BigDecimal cantidad,
                                            String referencia, String motivo, boolean ajuste) {

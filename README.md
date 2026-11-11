@@ -1,43 +1,31 @@
-# Inventario y caja — base inicial
+# Cuadre y Stock
 
-Proyecto Maven para abrir en IntelliJ IDEA: **File > Open**, elegir esta carpeta o `pom.xml` y cargar como proyecto Maven. Configurar un JDK 21 o superior. Para comprobar la compilación y las pruebas, usar el ciclo Maven `test`; para ver la ventana provisional, ejecutar `javafx:run` desde Maven.
+Aplicación Java para inventario y control interno de caja en Surquillo. Proyecto Maven para IntelliJ IDEA, con JavaFX y PostgreSQL. El plan contempla futuras sedes; las pantallas se completarán al final de la lógica.
 
-## Estado del proyecto
+## Estado actual
 
-El objetivo es una aplicación Java de escritorio para controlar inventario y cuadre de caja en Surquillo, con PostgreSQL y una arquitectura preparada para futuras sedes. Los comprobantes son registros internos; la aplicación no emite documentos electrónicos. Se trabajan primero las reglas y la persistencia y se completarán las pantallas al final.
+Stock y Catálogo disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Todavía no están terminados para uso con datos reales. Caja y Compras están pendientes de desarrollo e integración.
 
-En una terminal con Maven instalado, ejecuta `mvn test`. En IntelliJ se puede ejecutar el mismo ciclo desde el panel Maven. Una ejecución con PostgreSQL 17 de pruebas aislado completó 36 pruebas, incluidas cinco de integración. La interfaz aún no tiene validación visual. Los repositorios en memoria son únicamente para pruebas y no conservan datos.
+Stock incluye cantidades exactas, entradas, ajustes, descuentos sin negativos, reservas con confirmación de faltantes, ampliaciones, cancelación, despacho único, mínimos por almacén e historial. La autorización de pago de Caja todavía se simula en las pruebas.
 
-La aplicación está en desarrollo y no es una beta lista para datos reales. Algunas clases de Caja siguen vacías. Hay lógica de Stock, repositorios y esquemas SQL iniciales, pero falta configurar y verificar una conexión real, así como implementar migraciones y respaldo.
+Catálogo incluye artículos por SKU, unidades y presentaciones, costo opcional, búsqueda paginada, desactivación, control de versiones e historial. Las listas de marcas, categorías, unidades y presentaciones consultan los valores existentes en los artículos; su administración independiente está pendiente. Una caja con metraje descriptivo descuenta una caja; no hay conversión automática a metros cuadrados.
 
-El paquete `modelo.stock` separa el inventario de `modelo.caja`; hay repositorios tanto en memoria como preparados para PostgreSQL. `excepcion` contiene excepciones básicas y `src/test` las pruebas. La ventana principal todavía solo confirma el arranque de JavaFX.
+## Abrir y probar
 
-Stock: `SaldoStock` y `StockService` calculan movimientos con cantidades exactas; el descuento usa únicamente el disponible. `ReservaService` vincula cada reserva a una separación, informa cuánto hay disponible y cuánto falta, y registra la cantidad aceptada, ampliaciones, cancelaciones y despacho. Puede ampliarse después de un ingreso; exige tener la cantidad completa reservada antes de despachar. `StockController` consulta el catálogo y respeta la precisión del SKU. `StockView` prepara operaciones manuales, y `ConfirmacionReservaView` prepara el aviso de confirmación, pero todavía no están conectadas a la ventana principal ni probadas visualmente.
+Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
-`InventarioService` registra stock inicial, entradas, ventas y ajustes con identificadores de solicitud; guarda el cambio real y mantiene el historial. `StockMemoriaRepository` sirve para pruebas y pierde los datos al cerrar. `StockPostgresRepository` y `src/main/resources/db/stock-v1.sql` se probaron contra una instancia PostgreSQL aislada con casos de persistencia, reservas, concurrencia y reversión. Aún faltan migraciones, conexión desde la aplicación y pruebas completas de recuperación: no utilizar con datos reales.
+La suite completa habilitada con PostgreSQL de prueba pasó 38 pruebas, seis de integración real. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
 
-Pendiente: integrar el aviso en la pantalla de separación, conectar el autorizador de despacho a Caja y garantizar que la validación del pago y el despacho sean atómicos en una transacción compartida; conectar compras, definir mínimos por almacén y completar migraciones y pruebas PostgreSQL con concurrencia, recuperación y reintentos. El autorizador usado en pruebas es simulado; no existe uno de producción. Los cálculos de Stock no autorizan por sí solos una entrega ni confirman pagos. No usar el esquema con datos reales antes de probarlo y versionar su migración.
+## Configuración y migraciones
 
-## Inicio del catálogo
+ConexionPostgres lee APP_DB_URL, APP_DB_USER y APP_DB_PASSWORD desde el entorno. Las credenciales se configuran fuera del repositorio. MigracionesPostgres aplica versiones explícitamente y verifica las ya registradas; no migra bases antiguas manualmente creadas ni modifica la instalación principal automáticamente.
 
-`CatalogoService` permite crear, actualizar, consultar y buscar variantes con SKU, descripción, categoría, marca, presentación, unidad de venta, origen, precio y costo opcionales. El contenido de una presentación y su unidad son descriptivos: por ejemplo, una caja puede indicar 1,5 m², pero vender una caja descuenta una caja, sin conversiones automáticas. Los SKU permanecen únicos incluso al desactivar un artículo y las actualizaciones verifican su versión. La búsqueda usa páginas de hasta 100 resultados.
+La ventana principal sigue siendo provisional. StockView y ConfirmacionReservaView están preparadas como componentes independientes, sin validación visual ni conexión a una sesión real de la aplicación.
 
-`ProductoMemoriaRepository` sirve solo para pruebas; `ProductoPostgresRepository` y `db/catalogo-v1.sql` se probaron con consultas básicas en PostgreSQL real. Aún faltan la interfaz, integración completa con el saldo de Stock, catálogos editables de categorías y marcas, listas de precios por sede, historial de cambios y migraciones seguras. No se ha medido el rendimiento con grandes volúmenes en PostgreSQL; la paginación evita cargar toda la lista en la aplicación, pero la búsqueda por texto puede requerir índices adicionales al crecer. No cargar datos reales hasta completar estas pruebas y protecciones. La unidad y la precisión de un SKU no se modifican automáticamente para evitar reinterpretar existencias anteriores.
+## Documentación
 
-La regla acordada para una separación con stock insuficiente consiste en informar al vendedor de la cantidad disponible y la faltante y pedir confirmación para reservar solo lo disponible. La reposición permite ampliar la reserva; el despacho requiere la cantidad completa y la autorización de Caja. Esa autorización todavía no está integrada con el pago real.
+- [Estado, decisiones, operación y pendientes](docs/ESTADO-Y-OPERACION.md).
+- [Pruebas y alcance de la revisión de seguridad](README-PRUEBAS-SEGURIDAD.md).
+- Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
-## PostgreSQL y seguridad
-
-PostgreSQL se eligió por sus transacciones y soporte para el acceso de varios equipos, previstos en la expansión a otras sedes. El controlador JDBC está declarado en Maven. Los archivos `db/catalogo-v1.sql` y `db/stock-v1.sql` son esquemas iniciales, no un sistema de migración de producción; requieren revisión antes de aplicarse a una base con datos reales. PostgreSQL 17 está instalado y se probó una instancia independiente; no hay conexión configurada desde la aplicación.
-
-No guardar contraseñas, copias de bases de datos ni datos reales dentro del repositorio. Las búsquedas SQL preparadas tienen pruebas con JDBC simulado; esas pruebas no sustituyen una prueba real de PostgreSQL ni una auditoría completa de seguridad. El detalle de las pruebas está en `README-PRUEBAS-SEGURIDAD.md`.
-
-## Próximas etapas
-
-1. Completar y verificar PostgreSQL con una base de prueba aislada; validar consultas, concurrencia, reintentos y recuperación.
-2. Terminar Catálogo y sus pruebas, incluidos historial e integración de persistencia con Stock.
-3. Desarrollar Caja y Compras y coordinar sus transacciones con Stock.
-4. Completar migraciones y respaldos y probar la restauración antes del uso real.
-5. Conectar y revisar las pantallas al final del desarrollo de la lógica.
-
-Referencia funcional: especificación beta 3.1 del 5 de noviembre de 2026 y aclaración posterior sobre faltantes en separaciones.
+Falta la transacción compartida con Caja, la reconstrucción al corte histórico, respaldos y restauración, configuración de producción y partes del catálogo. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.

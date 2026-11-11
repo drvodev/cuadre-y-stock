@@ -9,6 +9,14 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class CatalogoService {
+    public List<String> opciones(ProductoRepository.Lista lista,int limite) {
+        validarLimite(limite); return repositorio.opciones(Objects.requireNonNull(lista),limite);
+    }
+    public List<com.surquillo.inventariocaja.modelo.stock.CambioCatalogo> historial(String sku,long despues,int limite) {
+        validarLimite(limite); if(despues<0) throw new ValidacionException("Cursor inválido");
+        return repositorio.historial(normalizar(sku),despues,limite);
+    }
+    private void validarLimite(int limite) { if(limite<1 || limite>100) throw new ValidacionException("El tamaño de página debe estar entre 1 y 100"); }
     private final ProductoRepository repositorio;
     public CatalogoService(ProductoRepository repositorio) { this.repositorio = Objects.requireNonNull(repositorio); }
     public Variante crear(Variante articulo) {

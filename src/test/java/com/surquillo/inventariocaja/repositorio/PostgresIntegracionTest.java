@@ -4,6 +4,7 @@ import com.surquillo.inventariocaja.modelo.stock.*;
 import com.surquillo.inventariocaja.servicio.*;
 import com.surquillo.inventariocaja.excepcion.PersistenciaException;
 import com.surquillo.inventariocaja.excepcion.ValidacionException;
+import com.surquillo.inventariocaja.configuracion.MigracionesPostgres;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -34,14 +35,8 @@ class PostgresIntegracionTest {
         esquema="prueba_"+UUID.randomUUID().toString().replace("-","");
         try (Connection c=ds.getConnection(); var s=c.createStatement()) { s.execute("CREATE SCHEMA "+esquema); }
         ds.setCurrentSchema(esquema);
-        try (Connection c=ds.getConnection(); var s=c.createStatement()) {
-            for (String archivo : new String[]{"/db/catalogo-v1.sql","/db/stock-v1.sql"}) {
-                try (var recurso=PostgresIntegracionTest.class.getResourceAsStream(archivo)) {
-                    assertNotNull(recurso);
-                    s.execute(new String(recurso.readAllBytes(),StandardCharsets.UTF_8));
-                }
-            }
-        }
+        MigracionesPostgres.aplicar(ds);
+        MigracionesPostgres.aplicar(ds);
         stock=new StockPostgresRepository(ds); inventario=new InventarioService(stock,Clock.systemUTC());
         clave=new ClaveStock("SKU-001","almacen-prueba");
     }
@@ -110,5 +105,22 @@ class PostgresIntegracionTest {
         assertEquals(1,catalogo.actualizar(base).version());
         assertThrows(ValidacionException.class,()->catalogo.actualizar(base));
         assertEquals("bolsa",catalogo.buscarSku("SKU-C").orElseThrow().unidad());
+    }
+    @Test void guardaMinimosEHistorialYDetectaMigracionAlterada() throws Exception {
+        inventario.iniciar(UUID.randomUUID(),clave,false,n("2"),"");
+        inventario.configurarMinimo(clave,n("3"));
+        assertTrue(new InventarioService(new StockPostgresRepository(ds),Clock.systemUTC()).stockBajo(clave));
+        assertThrows(ValidacionException.class,()->inventario.configurarMinimo(clave,n("0.5")));
+        var catalogo=new CatalogoService(new ProductoPostgresRepository(ds));
+        var v=new Variante("SKU-H","Bolsa","","","","","bolsa",false,Variante.Origen.COMPRADO,null,"",n("20"),null,true,0);
+        catalogo.crear(v); catalogo.actualizar(v);
+        assertEquals(2,catalogo.historial("SKU-H",0,10).size());
+        assertEquals(1,catalogo.historial("SKU-H",catalogo.historial("SKU-H",0,1).get(0).secuencia(),10).size());
+        assertEquals(java.util.List.of("bolsa"),catalogo.opciones(ProductoRepository.Lista.UNIDAD,10));
+        try(Connection c=ds.getConnection(); var s=c.createStatement()) {
+            try(var r=s.executeQuery("SELECT count(*) FROM catalogo_historial WHERE sku='SKU-H'")) { r.next(); assertEquals(2,r.getInt(1)); }
+            s.executeUpdate("UPDATE app_migracion SET hash='alterado' WHERE version=1");
+        }
+        assertThrows(java.sql.SQLException.class,()->MigracionesPostgres.aplicar(ds));
     }
 }

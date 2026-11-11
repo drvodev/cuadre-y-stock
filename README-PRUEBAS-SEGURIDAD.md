@@ -1,5 +1,11 @@
 # Pruebas de seguridad y resultados
 
+## Estado actual, 10 de noviembre de 2026
+
+La última suite Maven completa pasó 38 pruebas, con seis pruebas de integración en PostgreSQL 17 aislado. Se comprobaron transacciones de Stock, reservas, ventas concurrentes, rollback real, consultas parametrizadas, control de versiones de artículos, mínimos persistentes, historial de catálogo y migraciones repetidas o alteradas. Las pruebas anteriores detalladas más abajo conservan su alcance histórico; la indicación de que no se probó PostgreSQL corresponde a esas ejecuciones anteriores.
+
+Las credenciales temporales de integración se suministran por entorno, fuera del repositorio. La instancia de prueba está separada de la instalación principal. Persisten pendientes de seguridad y operación: permisos de una cuenta de aplicación real, recuperación de respaldos y coordinación de Caja con Stock. Estas pruebas no certifican la seguridad global del producto. Ver docs/ESTADO-Y-OPERACION.md para reproducibilidad y límites.
+
 ## Alcance
 
 Se revisó `StockPostgresRepository` y se añadieron pruebas en `src/test/java/com/surquillo/inventariocaja/repositorio/StockPostgresSqlInjectionTest.java`. La base de datos es un doble simulado de JDBC: registra las consultas preparadas y sus parámetros, devuelve resultados vacíos y simula escrituras exitosas. No se conecta a PostgreSQL ni necesita datos reales.
@@ -37,3 +43,9 @@ En una ejecución posterior del 10 de noviembre de 2026 se compilaron los modelo
 Se añadieron pruebas con 60 reintentos concurrentes de una misma entrada, 40 intentos concurrentes de despacho con solicitudes diferentes, tres rechazos repetidos de autorización y una falla simulada durante la inserción del movimiento. Se comprobó que en memoria no se duplica la entrada ni el despacho, que el rechazo conserva el saldo y el historial, y que el repositorio PostgreSQL solicita `rollback` y no `commit` ante la excepción simulada.
 
 Las pruebas concurrentes usan únicamente el repositorio en memoria. La prueba del fallo de PostgreSQL simula JDBC: confirma las llamadas realizadas, no que un servidor haya revertido realmente los datos. Los límites y pasos pendientes anteriores siguen vigentes.
+
+## Verificación adicional de invariantes
+
+Se incorporó una prueba reproducible de 1.000 operaciones de entrada, venta y ajuste con cantidades válidas y negativas o cero. En cada paso contrasta el saldo con un cálculo independiente, verifica que no sea negativo y que las solicitudes rechazadas no agreguen movimientos. Al final comprueba que la suma de cambios y la continuidad del historial coincidan con el saldo.
+
+En la siguiente ejecución, modelos, controladores, servicios, repositorios, excepciones y pruebas se compilaron con JDK 25 y JUnit 6.0.3: **30 pruebas ejecutadas y 30 exitosas**. La prueba de invariantes usa almacenamiento en memoria y no cubre JavaFX, Maven, el comportamiento real de PostgreSQL ni los módulos que aún no están implementados.

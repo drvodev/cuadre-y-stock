@@ -10,6 +10,12 @@ import java.util.function.Function;
 
 /** Solo para desarrollo y pruebas; los datos desaparecen al cerrar el proceso. */
 public class StockMemoriaRepository implements StockRepository {
+    private final Map<ClaveStock,java.math.BigDecimal> minimos=new HashMap<>();
+    @Override public synchronized void configurarMinimo(ClaveStock clave,java.math.BigDecimal cantidad) {
+        var saldo=buscar(clave).orElseThrow(()->new ValidacionException("Stock no registrado"));
+        SaldoStock.validarCantidad(cantidad,saldo.permiteFraccion()); minimos.put(clave,cantidad);
+    }
+    @Override public synchronized java.math.BigDecimal minimo(ClaveStock clave) { return minimos.getOrDefault(clave,java.math.BigDecimal.ZERO); }
     private record Solicitud(String huella, ClaveStock clave, Object estado) {}
     private final Map<ClaveStock, SaldoStock> saldos = new HashMap<>();
     private final Map<ClaveStock, List<MovimientoStock>> movimientos = new HashMap<>();

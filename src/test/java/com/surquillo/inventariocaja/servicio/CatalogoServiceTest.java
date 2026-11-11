@@ -41,6 +41,8 @@ class CatalogoServiceTest {
         servicio.crear(item("a","A","bolsa",null,"",n("2"),null,true,0));
         assertThrows(ValidacionException.class,()->servicio.actualizar(item("a","A","caja",null,"",n("2"),null,true,0)));
         assertEquals("bolsa",servicio.buscarSku("a").orElseThrow().unidad());
+        assertEquals(1,servicio.historial("a",0,10).size());
+        assertEquals(java.util.List.of("bolsa"),servicio.opciones(com.surquillo.inventariocaja.repositorio.ProductoRepository.Lista.UNIDAD,10));
     }
     @Test void paginaUnCatalogoGrandeSinRepetirArticulos() {
         for (int i=0;i<2500;i++) servicio.crear(item(String.format("SKU-%04d",i),"Producto", "unidad",null,"",n("1"),null,true,0));

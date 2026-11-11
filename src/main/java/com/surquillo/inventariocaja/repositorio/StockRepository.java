@@ -11,6 +11,8 @@ import java.util.function.Function;
 
 /** Cada escritura debe guardar saldo y movimiento de forma atómica e idempotente. */
 public interface StockRepository {
+    void configurarMinimo(ClaveStock clave, java.math.BigDecimal cantidad);
+    java.math.BigDecimal minimo(ClaveStock clave);
     record Estado(SaldoStock saldo, MovimientoStock movimiento) {}
     record ContextoReserva(SaldoStock saldo, Optional<ReservaOperacion> reserva) {}
     record ResultadoReserva(SaldoStock saldo, MovimientoStock movimiento, ReservaOperacion reserva) {}

@@ -9,6 +9,22 @@ import javax.sql.DataSource;
 
 /** Consultas parametrizadas y páginas limitadas; requiere catalogo-v1.sql. */
 public class ProductoPostgresRepository implements ProductoRepository {
+    @Override public List<String> opciones(Lista lista,int limite) {
+        String campo=switch(lista) { case CATEGORIA->"categoria"; case MARCA->"marca"; case UNIDAD->"unidad"; case PRESENTACION->"presentacion"; };
+        String sql="SELECT DISTINCT "+campo+" FROM catalogo_variante WHERE "+campo+" <> '' ORDER BY "+campo+" LIMIT ?";
+        try(Connection c=dataSource.getConnection(); var p=c.prepareStatement(sql)) {
+            p.setInt(1,limite); try(var r=p.executeQuery()) { List<String> valores=new ArrayList<>(); while(r.next()) valores.add(r.getString(1)); return List.copyOf(valores); }
+        } catch(SQLException e) { throw fallo(e); }
+    }
+    @Override public List<com.surquillo.inventariocaja.modelo.stock.CambioCatalogo> historial(String sku,long despues,int limite) {
+        String columnas=Arrays.stream(COLUMNAS.split(",")).map(s->"v."+s).collect(java.util.stream.Collectors.joining(","));
+        String sql="SELECT "+columnas+",h.secuencia,h.fecha FROM catalogo_historial h CROSS JOIN LATERAL jsonb_populate_record(NULL::catalogo_variante,h.posterior) v WHERE h.sku=? AND h.secuencia>? ORDER BY h.secuencia LIMIT ?";
+        try(Connection c=dataSource.getConnection(); var p=c.prepareStatement(sql)) {
+            p.setString(1,sku); p.setLong(2,despues); p.setInt(3,limite);
+            try(var r=p.executeQuery()) { List<com.surquillo.inventariocaja.modelo.stock.CambioCatalogo> valores=new ArrayList<>();
+                while(r.next()) valores.add(new com.surquillo.inventariocaja.modelo.stock.CambioCatalogo(r.getLong(16),r.getTimestamp(17).toInstant(),leer(r))); return List.copyOf(valores); }
+        } catch(SQLException e) { throw fallo(e); }
+    }
     private static final String COLUMNAS = "sku,descripcion,categoria,marca,presentacion,tipo,unidad,permite_fraccion,origen,contenido,unidad_contenido,precio_venta,costo,activo,version";
     private final DataSource dataSource;
     public ProductoPostgresRepository(DataSource dataSource) { this.dataSource=Objects.requireNonNull(dataSource); }

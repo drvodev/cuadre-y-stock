@@ -10,6 +10,19 @@ import javax.sql.DataSource;
 
 /** Almacén PostgreSQL. Requiere instalar previamente db/stock-v1.sql. */
 public class StockPostgresRepository implements StockRepository {
+    @Override public void configurarMinimo(ClaveStock clave,java.math.BigDecimal cantidad) {
+        var saldo=buscar(clave).orElseThrow(()->new ValidacionException("Stock no registrado"));
+        SaldoStock.validarCantidad(cantidad,saldo.permiteFraccion());
+        try(Connection c=dataSource.getConnection(); var p=c.prepareStatement("INSERT INTO stock_minimo(sku,almacen,cantidad) VALUES(?,?,?) ON CONFLICT(sku,almacen) DO UPDATE SET cantidad=EXCLUDED.cantidad")) {
+            p.setString(1,clave.sku()); p.setString(2,clave.almacen()); p.setBigDecimal(3,cantidad); p.executeUpdate();
+        } catch(SQLException e) { throw fallo(e); }
+    }
+    @Override public java.math.BigDecimal minimo(ClaveStock clave) {
+        try(Connection c=dataSource.getConnection(); var p=c.prepareStatement("SELECT cantidad FROM stock_minimo WHERE sku=? AND almacen=?")) {
+            p.setString(1,clave.sku()); p.setString(2,clave.almacen());
+            try(var r=p.executeQuery()) { return r.next()?r.getBigDecimal(1):java.math.BigDecimal.ZERO; }
+        } catch(SQLException e) { throw fallo(e); }
+    }
     private final DataSource dataSource;
     public StockPostgresRepository(DataSource dataSource) { this.dataSource = Objects.requireNonNull(dataSource); }
 
