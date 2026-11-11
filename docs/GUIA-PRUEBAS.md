@@ -1,6 +1,8 @@
-# Cuadre y Stock · beta de pruebas 0.1.0
+# Cuadre y Stock · beta de pruebas 0.1.1
 
 Esta versión conecta pantallas con las funciones ya implementadas. Es una beta para probar con datos de demostración: todavía no es la entrega completa del plan.
+
+La versión 0.1.1 incorpora un tema oscuro de tonos suaves en formularios, tablas, pestañas y mensajes. En Catálogo, escribe el texto y pulsa **Enter** o **Buscar**: ambos reinician la paginación y ejecutan la misma búsqueda.
 
 ## Abrir el programa
 
@@ -45,6 +47,8 @@ Las consultas están limitadas a 100 resultados. Catálogo permite buscar y avan
 No están disponibles todavía compras con su documento y entrada coordinada, cambios de producto, devoluciones parciales, reportes Excel, reconstrucción histórica completa, respaldos y restauración, ni administración independiente de listas. La exportación, impresión y facturación electrónica no forman parte de estas pantallas; la impresión y la emisión electrónica ya estaban fuera de esta beta inicial.
 
 ## Verificación de entrega
+
+En la versión 0.1.1 se ejecutaron 40 pruebas Maven con éxito; las 14 de integración se omitieron al no habilitar la base de pruebas en esa ejecución. Se generó y abrió el nuevo paquete Windows. Se revisaron el tema oscuro del catálogo y un mensaje, y la búsqueda real con Enter: de cinco artículos DEMO, buscar `Rinok` mostró únicamente sus tres coincidencias. Este cambio no modifica reglas ni tablas de la base de datos.
 
 El proyecto compila y la suite ejecutó 54 pruebas exitosas, 14 de integración con PostgreSQL aislado. El paquete Windows se generó con Java incluido y se abrió en este equipo. Se revisaron las cinco pestañas, se cargaron los cinco artículos DEMO, se consultó stock inicial 10, se abrió un turno con fondo 0 y se confirmó la venta ficticia QA-B1 de una bolsa por S/ 20 con S/ 50 recibidos. La pantalla mostró vuelto S/ 30; Operaciones mostró entregada y saldo 0; Caja mostró esperado S/ 20 y Stock pasó a 9 al actualizar la consulta. No se ha completado manualmente todo el recorrido de separación, devolución y cierre ni se ha validado en el equipo Windows 10 del negocio.
 

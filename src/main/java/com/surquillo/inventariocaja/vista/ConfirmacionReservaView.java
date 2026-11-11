@@ -20,10 +20,10 @@ public final class ConfirmacionReservaView {
                 + propuesta.disponible().toPlainString() + "\nFaltante: " + propuesta.faltante().toPlainString();
         if (propuesta.disponible().signum() == 0) {
             dialogo.setContentText(detalle + "\nNo hay unidades disponibles para reservar.");
-            dialogo.showAndWait();
+            Ui.tema(dialogo).showAndWait();
             return false;
         }
         dialogo.setContentText(detalle + "\n¿Desea separar solo las unidades disponibles?");
-        return dialogo.showAndWait().filter(ButtonType.OK::equals).isPresent();
+        return Ui.tema(dialogo).showAndWait().filter(ButtonType.OK::equals).isPresent();
     }
 }

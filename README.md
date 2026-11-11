@@ -14,7 +14,7 @@ Catálogo incluye artículos por SKU, unidades y presentaciones, costo opcional,
 
 Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
-La última suite completa habilitada con PostgreSQL de prueba pasó 53 pruebas, 13 de integración real. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
+La última suite completa habilitada con PostgreSQL de prueba pasó 54 pruebas, 14 de integración real. Para el cambio visual 0.1.1 pasaron 40 pruebas y se omitieron las 14 de integración. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
 
 ## Configuración y migraciones
 
@@ -23,6 +23,8 @@ ConexionPostgres lee APP_DB_URL, APP_DB_USER y APP_DB_PASSWORD desde el entorno.
 La aplicación dispone de conexión local y preparación de un esquema de pruebas, pestañas de Catálogo, Stock, Caja, Nueva operación y Operaciones. La carga DEMO es opcional y no sobrescribe existencias. El paquete Windows incluye Java. Se probó visualmente carga DEMO, consulta, apertura y venta con vuelto; la prueba manual completa de todos los recorridos sigue pendiente. Ver GUIA-PRUEBAS.md antes de usarlo.
 
 Para construir un paquete desde las fuentes: ejecutar primero las pruebas y después `tools/Construir-Beta.ps1`. El empaquetador requiere Maven y un JDK con jpackage, y omite la repetición de pruebas durante el empaquetado. El paquete generado no contiene bases de datos ni contraseñas.
+
+La beta de pruebas 0.1.1 usa un tema oscuro de tonos suaves, también en los mensajes. En Catálogo se busca con Enter o con el botón Buscar; ambas acciones vuelven a la primera página. Se verificó esta búsqueda en el ejecutable Windows con los datos DEMO. La versión del paquete puede indicarse con `-Version` al construirlo.
 
 ## Documentación
 
@@ -35,4 +37,4 @@ Para construir un paquete desde las fuentes: ejecutar primero las pruebas y desp
 - [Abrir la beta de pruebas y recorrido con resultados esperados](docs/GUIA-PRUEBAS.md).
 - Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
-Faltan compras documentadas, cambios de producto, reconstrucción al corte histórico, reportes .xls, respaldos y restauración, configuración de producción, partes del catálogo, pantallas y empaquetado. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.
+Faltan compras documentadas, cambios de producto, reconstrucción al corte histórico, reportes .xls, respaldos y restauración, configuración de producción y partes del catálogo y sus pantallas. El paquete de pruebas Windows ya está disponible. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.

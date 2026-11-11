@@ -16,6 +16,7 @@ public class CatalogoView {
     private String cursor="";
     public CatalogoView(SesionBeta sesion) { this.sesion=sesion; }
     public Parent crear() {
+        buscar.setOnAction(e->Ui.accion(this::buscarDesdeInicio));
         tabla.getColumns().add(Ui.columna("SKU",Variante::sku,150)); tabla.getColumns().add(Ui.columna("Descripción",Variante::descripcion,260));
         tabla.getColumns().add(Ui.columna("Unidad",Variante::unidad,100)); tabla.getColumns().add(Ui.columna("Presentación",Variante::presentacion,140));
         tabla.getColumns().add(Ui.columna("Precio",v->v.precioVenta()==null?"Por definir":v.precioVenta().toPlainString(),100));
@@ -31,10 +32,11 @@ public class CatalogoView {
         form.addRow(5,new Label("Precio de venta"),precio,new Label("Costo opcional"),costo);
         form.addRow(6,fraccion,activo);
         var status=new Label("Selecciona un artículo para editar. La unidad y precisión se conservan al editar.");
-        var raiz=Ui.panel(new Label("Catálogo"),new HBox(10,buscar,Ui.boton("Buscar",()->{cursor="";refrescar();}),Ui.boton("Siguiente página",()->{ if(!tabla.getItems().isEmpty()) {cursor=tabla.getItems().get(tabla.getItems().size()-1).sku();refrescar();}})),tabla,status,form,new HBox(10,Ui.boton("Nuevo artículo",this::limpiar),Ui.boton("Guardar artículo",this::guardar)));
+        var raiz=Ui.panel(new Label("Catálogo"),new HBox(10,buscar,Ui.boton("Buscar",this::buscarDesdeInicio),Ui.boton("Siguiente página",()->{ if(!tabla.getItems().isEmpty()) {cursor=tabla.getItems().get(tabla.getItems().size()-1).sku();refrescar();}})),tabla,status,form,new HBox(10,Ui.boton("Nuevo artículo",this::limpiar),Ui.boton("Guardar artículo",this::guardar)));
         Ui.accion(this::refrescar); return Ui.desplazar(raiz);
     }
     public void refrescar() { tabla.getItems().setAll(sesion.catalogo.buscar(buscar.getText(),cursor,100,true)); }
+    private void buscarDesdeInicio() { cursor="";refrescar(); }
     private void guardar() {
         var v=new Variante(sku.getText(),descripcion.getText(),categoria.getText(),marca.getText(),presentacion.getText(),tipo.getText(),unidad.getText(),fraccion.isSelected(),origen.getValue(),Ui.opcional(contenido.getText()),unidadContenido.getText(),Ui.opcional(precio.getText()),Ui.opcional(costo.getText()),activo.isSelected(),seleccionado==null?0:seleccionado.version());
         if(seleccionado==null) sesion.catalogo.crear(v); else sesion.catalogo.actualizar(v);

@@ -15,7 +15,7 @@ public class Aplicacion extends Application {
     private Stage escenario;
     @Override
     public void start(Stage escenario) {
-        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta de pruebas");
+        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta de pruebas 0.1.1");
         var host=Ui.campo("127.0.0.1");host.setText("127.0.0.1");var puerto=Ui.campo("5432");puerto.setText("5432");var base=Ui.campo("postgres");base.setText("postgres");var usuario=Ui.campo("postgres");usuario.setText("postgres");var clave=new PasswordField();var esquema=Ui.campo("cuadre_pruebas");esquema.setText("cuadre_pruebas");var estado=new Label("La contraseña se usa solo en esta sesión. No la escribas en el chat.");
         var conectar=new Button("Conectar e iniciar pruebas");
         conectar.setOnAction(e->{

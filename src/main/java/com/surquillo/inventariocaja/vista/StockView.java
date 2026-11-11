@@ -37,7 +37,7 @@ public class StockView {
         var fabricacion=new Button("Entrada por fabricación"); fabricacion.setOnAction(e->entrada(MovimientoStock.Tipo.FABRICACION));
         var ajustar=new Button("Ajustar stock"); ajustar.setOnAction(e->{
             var motivo=new TextInputDialog(); motivo.setTitle("Ajuste de stock"); motivo.setHeaderText("Indica el motivo del ajuste");
-            motivo.showAndWait().ifPresent(texto->ejecutar(()->{
+            Ui.tema(motivo).showAndWait().ifPresent(texto->ejecutar(()->{
                 controlador.ajustar(ajusteId,sku.getText(),almacen.getText(),numero(),texto); ajusteId=UUID.randomUUID();cantidad.clear();actualizar();
             }));
         });
@@ -47,7 +47,7 @@ public class StockView {
     }
     private void entrada(MovimientoStock.Tipo tipo) {
         var referencia=new TextInputDialog(); referencia.setTitle("Entrada de stock"); referencia.setHeaderText("Referencia de la entrada (opcional)");
-        referencia.showAndWait().ifPresent(texto->ejecutar(()->{
+        Ui.tema(referencia).showAndWait().ifPresent(texto->ejecutar(()->{
             controlador.entrada(entradaId,sku.getText(),almacen.getText(),tipo,numero(),texto); entradaId=UUID.randomUUID();cantidad.clear();actualizar();
         }));
     }
@@ -67,7 +67,7 @@ public class StockView {
     private void ejecutar(Runnable accion) {
         try { accion.run(); }
         catch (AplicacionException | IllegalArgumentException e) {
-            var aviso=new Alert(Alert.AlertType.ERROR); aviso.setTitle("Stock"); aviso.setHeaderText("No se pudo completar la operación"); aviso.setContentText(e.getMessage()); aviso.showAndWait();
+            var aviso=new Alert(Alert.AlertType.ERROR); aviso.setTitle("Stock"); aviso.setHeaderText("No se pudo completar la operación"); aviso.setContentText(e.getMessage()); Ui.tema(aviso).showAndWait();
         }
     }
 }

@@ -15,18 +15,19 @@ public final class Ui {
         catch(Exception e) { throw new IllegalArgumentException("Ingresa un número válido, sin separador de miles"); }
     }
     public static BigDecimal opcional(String texto) { return texto==null||texto.isBlank()?null:numero(texto); }
+    public static <T> Dialog<T> tema(Dialog<T> dialogo) { var css=Ui.class.getResource("/ui/beta.css");if(css!=null)dialogo.getDialogPane().getStylesheets().add(css.toExternalForm());return dialogo; }
     public static void accion(Runnable tarea) {
         try { tarea.run(); }
         catch(Exception e) {
             var a=new Alert(Alert.AlertType.ERROR); a.setTitle("Revisar operación"); a.setHeaderText("No se completó la operación");
-            a.setContentText(e.getMessage()==null?"Revisa los datos y la conexión.":e.getMessage()); a.showAndWait();
+            a.setContentText(e.getMessage()==null?"Revisa los datos y la conexión.":e.getMessage()); tema(a).showAndWait();
         }
     }
     public static boolean confirmar(String mensaje) {
         var a=new Alert(Alert.AlertType.CONFIRMATION,mensaje,ButtonType.YES,ButtonType.NO); a.setTitle("Confirmar"); a.setHeaderText(null);
-        return a.showAndWait().filter(ButtonType.YES::equals).isPresent();
+        return tema(a).showAndWait().filter(ButtonType.YES::equals).isPresent();
     }
-    public static void informar(String mensaje) { var a=new Alert(Alert.AlertType.INFORMATION,mensaje,ButtonType.OK); a.setHeaderText(null); a.showAndWait(); }
+    public static void informar(String mensaje) { var a=new Alert(Alert.AlertType.INFORMATION,mensaje,ButtonType.OK); a.setHeaderText(null); tema(a).showAndWait(); }
     public static Button boton(String texto,Runnable tarea) { var b=new Button(texto); b.setOnAction(e->accion(tarea)); return b; }
     public static VBox panel(javafx.scene.Node... nodos) { var v=new VBox(12,nodos); v.setPadding(new Insets(18)); return v; }
     public static ScrollPane desplazar(javafx.scene.Node nodo) { var p=new ScrollPane(nodo); p.setFitToWidth(true); return p; }

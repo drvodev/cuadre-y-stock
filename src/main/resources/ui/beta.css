@@ -1,11 +1,47 @@
-.root { -fx-font-family: "Segoe UI"; -fx-font-size: 13px; -fx-background-color: #f4f7fa; }
-.label { -fx-text-fill: #183344; }
-.button { -fx-background-color: #167d8d; -fx-text-fill: white; -fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand; }
-.button:hover { -fx-background-color: #116473; }
-.text-field, .combo-box, .date-picker { -fx-pref-height: 33; }
-.tab-pane > .tab-header-area > .headers-region > .tab { -fx-padding: 10 17; }
-.tab:selected { -fx-background-color: white; }
-.table-view { -fx-background-color: white; -fx-border-color: #d6e1e8; }
-.table-view .column-header-background { -fx-background-color: #e6eff4; }
-.titled-pane > .title { -fx-padding: 12; }
-.scroll-pane > .viewport { -fx-background-color: #f4f7fa; }
+.root {
+    -fx-font-family: "Segoe UI"; -fx-font-size: 13px;
+    -fx-base: #29333e; -fx-background: #202831; -fx-control-inner-background: #28333e;
+    -fx-control-inner-background-alt: #2c3844; -fx-text-base-color: #dce5ec;
+    -fx-background-color: #202831; -fx-accent: #528b91; -fx-focus-color: #6aa9ae;
+    -fx-faint-focus-color: rgba(106,169,174,0.15);
+}
+.label, .check-box, .radio-button { -fx-text-fill: #dce5ec; }
+.button { -fx-background-color: #3d747b; -fx-text-fill: #f2f7f7; -fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand; }
+.button:hover { -fx-background-color: #4b858c; }
+.button:pressed { -fx-background-color: #315f66; }
+.button:disabled { -fx-opacity: 0.55; }
+.text-field, .text-area, .combo-box, .date-picker { -fx-pref-height: 33; -fx-background-color: #2c3844; -fx-border-color: #4a5968; -fx-border-radius: 4; -fx-background-radius: 4; }
+.text-input { -fx-text-fill: #e0e8ef; -fx-prompt-text-fill: #9eafbd; -fx-highlight-fill: #466975; -fx-highlight-text-fill: #ffffff; }
+.text-area .content { -fx-background-color: #26323d; }
+.combo-box .list-cell { -fx-text-fill: #dce5ec; -fx-background-color: transparent; }
+.combo-box-popup .list-view { -fx-background-color: #2c3844; }
+.combo-box-popup .list-cell { -fx-background-color: #2c3844; -fx-text-fill: #dce5ec; }
+.combo-box-popup .list-cell:hover, .combo-box-popup .list-cell:selected { -fx-background-color: #42646f; }
+.tab-pane .tab-header-background { -fx-background-color: #1b232c; }
+.tab-pane > .tab-header-area > .headers-region > .tab { -fx-padding: 10 17; -fx-background-color: #293541; }
+.tab-pane .tab-label { -fx-text-fill: #b9c9d5; }
+.tab-pane .tab:selected { -fx-background-color: #3c5562; }
+.tab-pane .tab:selected .tab-label { -fx-text-fill: #edf4f7; }
+.table-view { -fx-background-color: #26323d; -fx-border-color: #435361; -fx-table-cell-border-color: #344350; }
+.table-view .column-header-background, .table-view .column-header, .table-view .filler { -fx-background-color: #354553; }
+.table-view .column-header .label { -fx-text-fill: #e3ebf1; }
+.table-row-cell { -fx-background-color: #26323d; -fx-text-background-color: #dce5ec; }
+.table-row-cell:odd { -fx-background-color: #2a3743; }
+.table-row-cell:selected { -fx-background-color: #425e6d; -fx-text-background-color: #ffffff; }
+.table-cell { -fx-text-fill: #dce5ec; }
+.titled-pane > .title { -fx-padding: 12; -fx-background-color: #32424f; }
+.titled-pane > .title > .text { -fx-fill: #dce5ec; }
+.titled-pane > .content { -fx-background-color: #202831; -fx-border-color: #435361; }
+.scroll-pane, .scroll-pane > .viewport { -fx-background-color: #202831; }
+.scroll-bar { -fx-background-color: #202831; }
+.scroll-bar .thumb { -fx-background-color: #536573; -fx-background-radius: 6; }
+.scroll-bar .track { -fx-background-color: #26323d; }
+.check-box .box { -fx-background-color: #364756; -fx-border-color: #6a8192; -fx-border-radius: 3; }
+.check-box:selected .mark { -fx-background-color: #b1d7d9; }
+.date-picker > .arrow-button { -fx-background-color: #3a4c5a; }
+.date-picker-popup { -fx-background-color: #2c3844; }
+.date-picker-popup .month-year-pane { -fx-background-color: #354553; }
+.date-picker-popup .day-cell { -fx-background-color: #293641; -fx-text-fill: #dce5ec; }
+.date-picker-popup .day-cell:hover, .date-picker-popup .selected { -fx-background-color: #4b7380; }
+.dialog-pane { -fx-background-color: #26323d; }
+.dialog-pane .header-panel { -fx-background-color: #32424f; }

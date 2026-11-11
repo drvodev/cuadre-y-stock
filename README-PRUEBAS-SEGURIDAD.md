@@ -1,5 +1,9 @@
 # Pruebas de seguridad y resultados
 
+## Tema oscuro y búsqueda con Enter, versión 0.1.1
+
+Se sustituyó el fondo claro por tonos oscuros suaves y se aplicó el mismo estilo a mensajes y confirmaciones. Catálogo comparte la búsqueda desde la primera página entre Enter y el botón Buscar. Maven pasó 40 pruebas y omitió 14 de integración al no habilitar PostgreSQL de prueba; no se modificaron las reglas ni las tablas. El paquete Windows se abrió y se verificaron el catálogo oscuro, un mensaje y la búsqueda con Enter de `Rinok`: tres coincidencias entre los cinco artículos DEMO. No se repitió la suite de integración en esta revisión visual.
+
 ## Interfaz y paquete para pruebas locales
 
 Se añadieron preparación de esquema sin borrado, carga DEMO sin sobrescritura, recuperación de turno abierto y pantallas conectadas a los servicios. La suite Maven completa pasó 54 pruebas, 14 contra PostgreSQL aislado. El empaquetado Windows incluye Java y las dependencias; no contiene credenciales ni datos del usuario. Tras autorizar el control de aplicaciones, se verificaron visualmente las pestañas, carga DEMO, stock inicial, apertura y una venta de S/ 20 con vuelto S/ 30, estado entregada, efectivo esperado 20 y stock final 9. No se afirma la revisión manual de todos los recorridos ni compatibilidad verificada en Windows 10.
