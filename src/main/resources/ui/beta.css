@@ -1,0 +1,11 @@
+.root { -fx-font-family: "Segoe UI"; -fx-font-size: 13px; -fx-background-color: #f4f7fa; }
+.label { -fx-text-fill: #183344; }
+.button { -fx-background-color: #167d8d; -fx-text-fill: white; -fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand; }
+.button:hover { -fx-background-color: #116473; }
+.text-field, .combo-box, .date-picker { -fx-pref-height: 33; }
+.tab-pane > .tab-header-area > .headers-region > .tab { -fx-padding: 10 17; }
+.tab:selected { -fx-background-color: white; }
+.table-view { -fx-background-color: white; -fx-border-color: #d6e1e8; }
+.table-view .column-header-background { -fx-background-color: #e6eff4; }
+.titled-pane > .title { -fx-padding: 12; }
+.scroll-pane > .viewport { -fx-background-color: #f4f7fa; }

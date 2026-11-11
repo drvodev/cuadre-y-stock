@@ -12,6 +12,17 @@ import java.util.function.Function;
 public class TurnoPostgresRepository implements TurnoRepository {
     private final DataSource ds;
     public TurnoPostgresRepository(DataSource ds) { this.ds=Objects.requireNonNull(ds); }
+    @Override public Optional<Estado> abierto(String caja) {
+        try(Connection c=ds.getConnection();var p=c.prepareStatement("SELECT id FROM caja_turno WHERE caja=? AND NOT cerrado")) {
+            p.setString(1,caja); try(var r=p.executeQuery()) { return r.next()?leer(c,r.getObject(1,UUID.class),null,null):Optional.empty(); }
+        } catch(SQLException e) { throw fallo(e); }
+    }
+    @Override public List<Turno> listar(int limite) {
+        if(limite<1||limite>100) throw new ValidacionException("Límite de turnos inválido");
+        try(Connection c=ds.getConnection();var p=c.prepareStatement("SELECT id,caja,fecha_operativa,encargado,fondo,version,cerrado FROM caja_turno ORDER BY fecha_operativa DESC,id LIMIT ?")) {
+            p.setInt(1,limite); try(var r=p.executeQuery()) { var lista=new ArrayList<Turno>(); while(r.next()) lista.add(new Turno(r.getObject(1,UUID.class),r.getString(2),r.getDate(3).toLocalDate(),r.getString(4),r.getBigDecimal(5),r.getLong(6),r.getBoolean(7))); return List.copyOf(lista); }
+        } catch(SQLException e) { throw fallo(e); }
+    }
     @Override public Optional<Estado> consultar(UUID turno) {
         try(Connection c=ds.getConnection()) { return leer(c,turno,null,null); }
         catch(SQLException e) { throw fallo(e); }

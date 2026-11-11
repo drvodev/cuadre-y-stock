@@ -38,6 +38,8 @@ public class StockController {
         Variante articulo=articulo(sku,false);
         return inventario.consultar(new ClaveStock(articulo.sku(),almacen));
     }
+    public void configurarMinimo(String sku,String almacen,BigDecimal minimo) { var v=articulo(sku,false);inventario.configurarMinimo(new ClaveStock(v.sku(),almacen),minimo); }
+    public boolean stockBajo(String sku,String almacen) { var v=articulo(sku,false);return inventario.stockBajo(new ClaveStock(v.sku(),almacen)); }
     public List<MovimientoStock> historial(String sku,String almacen) {
         Variante articulo=articulo(sku,false);
         return inventario.historial(new ClaveStock(articulo.sku(),almacen));

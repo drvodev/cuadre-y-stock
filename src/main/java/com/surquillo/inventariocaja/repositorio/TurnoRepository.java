@@ -9,5 +9,7 @@ public interface TurnoRepository {
         public Estado { movimientos=List.copyOf(movimientos); }
     }
     Optional<Estado> consultar(UUID turno);
+    Optional<Estado> abierto(String caja);
+    List<Turno> listar(int limite);
     Estado aplicar(UUID solicitud,String comando,String caja,UUID turno,Function<Optional<Estado>,Estado> cambio);
 }

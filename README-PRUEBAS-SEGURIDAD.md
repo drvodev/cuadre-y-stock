@@ -1,5 +1,11 @@
 # Pruebas de seguridad y resultados
 
+## Interfaz y paquete para pruebas locales
+
+Se añadieron preparación de esquema sin borrado, carga DEMO sin sobrescritura, recuperación de turno abierto y pantallas conectadas a los servicios. La suite Maven completa pasó 54 pruebas, 14 contra PostgreSQL aislado. El empaquetado Windows incluye Java y las dependencias; no contiene credenciales ni datos del usuario. Tras autorizar el control de aplicaciones, se verificaron visualmente las pestañas, carga DEMO, stock inicial, apertura y una venta de S/ 20 con vuelto S/ 30, estado entregada, efectivo esperado 20 y stock final 9. No se afirma la revisión manual de todos los recorridos ni compatibilidad verificada en Windows 10.
+
+Los formularios conservan UUID de confirmación en errores para permitir un reintento con el mismo contenido. No conservan ese UUID al reiniciar; ante una respuesta perdida se debe consultar el historial antes de crear otra operación. La cuenta de administración usada para preparar las pruebas aún debe sustituirse por permisos limitados antes de un despliegue real.
+
 ## Corrección de reintento del efectivo recibido e integración comercial
 
 Se reprodujo el fallo señalado por la auditoría: repetir un cobro con el mismo UUID y otro efectivo recibido podía cambiar el vuelto aunque se reutilizara el movimiento. `CajaService.cobrar` ahora incorpora al contenido idempotente tanto el importe a cobrar como el efectivo recibido, normalizados a dos decimales. El reintento con otro efectivo se rechaza; el reintento equivalente conserva el resultado. Las regresiones en memoria y PostgreSQL pasaron, incluida la recuperación del reintento después de cerrar el turno con una instancia nueva del servicio.
@@ -79,3 +85,7 @@ El 11 de noviembre de 2026 se probó una copia del commit `1d2a542` con PostgreS
 **Hallazgo abierto: reintento de cobro con efectivo recibido distinto.** En esa versión, un cobro en efectivo de 10 con 10 recibidos devuelve 0; al repetir el mismo identificador con 20 recibidos, el registro se reutiliza pero se devuelve un vuelto de 10. El efectivo recibido no participa en la validación de identidad de la solicitud y no se conserva como parte del resultado. Una prueba independiente que exige rechazar el cambio falló de forma reproducible. Es necesario definir y conservar el resultado del cobro o rechazar la reutilización con datos distintos, añadir pruebas de regresión y verificar también el caso persistido en PostgreSQL. El archivo de prueba de auditoría está en `work/revision-1d2a542/src/test/java/com/surquillo/inventariocaja/servicio/CobroReintentoAuditoriaTest.java`, fuera del código del proyecto.
 
 El uso previsto actualmente es local; la comprobación de TLS solo corresponde cuando se habiliten conexiones entre equipos. La revisión no certifica todas las funciones: el desarrollo continuaba y las pantallas, integración completa y recuperación siguen requiriendo validación.
+
+## Validación independiente posterior de la corrección
+
+El 11 de noviembre de 2026 se ejecutó Maven sobre una copia de los archivos presentes en ese momento, incluidos cambios aún no confirmados, con PostgreSQL 17 temporal limitado al equipo: **54 pruebas exitosas, 14 de integración y ninguna omitida**. Las pruebas incluyeron el rechazo del reintento con otro efectivo recibido tanto en memoria como después de reconstruir el servicio desde PostgreSQL. El servidor temporal se detuvo tras finalizar. Esta ejecución no incluyó una revisión visual de la interfaz ni certifica cambios posteriores realizados en paralelo.

@@ -11,6 +11,11 @@ public class TurnoMemoriaRepository implements TurnoRepository {
     private final Map<String,UUID> abiertos=new HashMap<>();
     private final Map<UUID,Solicitud> solicitudes=new HashMap<>();
     @Override public synchronized Optional<Estado> consultar(UUID id) { return Optional.ofNullable(turnos.get(id)); }
+    @Override public synchronized Optional<Estado> abierto(String caja) { return Optional.ofNullable(abiertos.get(caja)).flatMap(this::consultar); }
+    @Override public synchronized List<com.surquillo.inventariocaja.modelo.caja.Turno> listar(int limite) {
+        if(limite<1||limite>100) throw new ValidacionException("Límite de turnos inválido");
+        return turnos.values().stream().map(Estado::turno).sorted(Comparator.comparing(com.surquillo.inventariocaja.modelo.caja.Turno::fechaOperativa).reversed()).limit(limite).toList();
+    }
     @Override public synchronized Estado aplicar(UUID id,String comando,String caja,UUID turno,Function<Optional<Estado>,Estado> cambio) {
         Objects.requireNonNull(id); Objects.requireNonNull(comando); Objects.requireNonNull(caja); Objects.requireNonNull(turno);
         var previa=solicitudes.get(id);

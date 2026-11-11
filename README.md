@@ -1,6 +1,6 @@
 # Cuadre y Stock
 
-Aplicación Java para inventario y control interno de caja en Surquillo. Proyecto Maven para IntelliJ IDEA, con JavaFX y PostgreSQL. El plan contempla futuras sedes; las pantallas se completarán al final de la lógica.
+Aplicación Java para inventario y control interno de caja en Surquillo. Proyecto Maven para IntelliJ IDEA, con JavaFX y PostgreSQL. El plan contempla futuras sedes. Se priorizó una interfaz de pruebas para que el usuario pueda revisar las funciones existentes.
 
 ## Estado actual
 
@@ -20,7 +20,9 @@ La última suite completa habilitada con PostgreSQL de prueba pasó 53 pruebas, 
 
 ConexionPostgres lee APP_DB_URL, APP_DB_USER y APP_DB_PASSWORD desde el entorno. Las credenciales se configuran fuera del repositorio. MigracionesPostgres aplica versiones explícitamente y verifica las ya registradas; no migra bases antiguas manualmente creadas ni modifica la instalación principal automáticamente.
 
-La ventana principal sigue siendo provisional. StockView y ConfirmacionReservaView están preparadas como componentes independientes, sin validación visual ni conexión a una sesión real de la aplicación.
+La aplicación dispone de conexión local y preparación de un esquema de pruebas, pestañas de Catálogo, Stock, Caja, Nueva operación y Operaciones. La carga DEMO es opcional y no sobrescribe existencias. El paquete Windows incluye Java. Se probó visualmente carga DEMO, consulta, apertura y venta con vuelto; la prueba manual completa de todos los recorridos sigue pendiente. Ver GUIA-PRUEBAS.md antes de usarlo.
+
+Para construir un paquete desde las fuentes: ejecutar primero las pruebas y después `tools/Construir-Beta.ps1`. El empaquetador requiere Maven y un JDK con jpackage, y omite la repetición de pruebas durante el empaquetado. El paquete generado no contiene bases de datos ni contraseñas.
 
 ## Documentación
 
@@ -30,6 +32,7 @@ La ventana principal sigue siendo provisional. StockView y ConfirmacionReservaVi
 - [Integración de ventas, separaciones y anulaciones completas](docs/VENTAS.md).
 - [Responsabilidades y funciones por clase](docs/CLASES.md).
 - [Condiciones de aceptación de la beta completa](docs/BETA-ACEPTACION.md).
+- [Abrir la beta de pruebas y recorrido con resultados esperados](docs/GUIA-PRUEBAS.md).
 - Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
 Faltan compras documentadas, cambios de producto, reconstrucción al corte histórico, reportes .xls, respaldos y restauración, configuración de producción, partes del catálogo, pantallas y empaquetado. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.

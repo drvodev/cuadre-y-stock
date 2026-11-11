@@ -222,4 +222,14 @@ class PostgresIntegracionTest {
         assertEquals(Operacion.Estado.ANULADA,ventas.buscarDocumento(Documento.Tipo.BOLETA,"b1").estado()); igual("0",ventas.consultar(op).saldo());
         assertThrows(ValidacionException.class,()->ventas.anular(UUID.randomUUID(),op,siguiente,"Otra",pagos,java.util.Set.of(0)));
     }
+    @Test void sesionDePruebasCargaDemoSinSobrescribirYRecuperaTurnos() throws Exception {
+        var preparado=com.surquillo.inventariocaja.configuracion.PreparacionBeta.preparar(System.getenv("STOCK_TEST_URL"),System.getenv("STOCK_TEST_USER"),System.getenv("STOCK_TEST_PASSWORD"),esquema);
+        var demo=new DatosDemostracionService(preparado,Clock.systemUTC());demo.cargar();
+        var stockDemo=new InventarioService(new StockPostgresRepository(preparado),Clock.systemUTC());var claveDemo=new ClaveStock("DEMO-RIN-GI","Surquillo");
+        stockDemo.venta(UUID.randomUUID(),claveDemo,n("1"),"prueba");demo.cargar();igual("9",stockDemo.consultar(claveDemo).orElseThrow().fisico());
+        var repositorio=new TurnoPostgresRepository(preparado);var servicio=new CajaService(repositorio,Clock.systemUTC());var id=UUID.randomUUID();
+        servicio.abrir(UUID.randomUUID(),id,"Surquillo",java.time.LocalDate.now(),"Pruebas",n("100"));
+        assertEquals(id,new TurnoPostgresRepository(preparado).abierto("Surquillo").orElseThrow().turno().id());assertEquals(1,repositorio.listar(100).size());
+        var ventas=new VentaService(preparado,Clock.systemUTC());assertTrue(ventas.listar(100).isEmpty());
+    }
 }

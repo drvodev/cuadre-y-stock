@@ -121,6 +121,12 @@ public class VentaService {
             }
         } catch(SQLException e) { throw new PersistenciaException("No se pudo consultar la operación",e); }
     }
+    public List<Operacion> listar(int limite) {
+        if(limite<1||limite>100) throw new ValidacionException("El límite debe estar entre 1 y 100");
+        try(Connection c=unidad.getConnection();var p=c.prepareStatement("SELECT id FROM venta_operacion ORDER BY fecha DESC,id LIMIT ?")) {
+            p.setInt(1,limite); try(var r=p.executeQuery()) { var lista=new ArrayList<Operacion>(); while(r.next()) lista.add(consultar(r.getObject(1,UUID.class))); return List.copyOf(lista); }
+        } catch(SQLException e) { throw new PersistenciaException("No se pudieron consultar las operaciones",e); }
+    }
     public Optional<String> sugerirNumero(Documento.Tipo tipo,String prefijo) {
         String serie=texto(prefijo).toUpperCase(Locale.ROOT);
         try(Connection c=unidad.getConnection();var p=c.prepareStatement("SELECT numero FROM venta_documento WHERE tipo=? ORDER BY secuencia DESC")) {

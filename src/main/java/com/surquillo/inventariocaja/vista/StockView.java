@@ -17,24 +17,28 @@ public class StockView {
     private final TextField sku = new TextField();
     private final TextField almacen = new TextField();
     private final TextField cantidad = new TextField();
+    private final TextField minimo = Ui.campo("Mínimo para alertas");
     private final Label saldo = new Label("Sin consultar");
     private final TextArea movimientos = new TextArea();
+    private UUID inicialId=UUID.randomUUID(),entradaId=UUID.randomUUID(),ajusteId=UUID.randomUUID();
     public StockView(StockController controlador) { this.controlador=Objects.requireNonNull(controlador); }
 
     public Parent crear() {
+        almacen.setText("Surquillo");
         var formulario = new GridPane(); formulario.setHgap(10); formulario.setVgap(10);
         formulario.addRow(0,new Label("SKU"),sku,new Label("Almacén"),almacen);
         formulario.addRow(1,new Label("Cantidad"),cantidad);
+        formulario.addRow(2,new Label("Stock mínimo"),minimo,Ui.boton("Guardar mínimo",()->{controlador.configurarMinimo(sku.getText(),almacen.getText(),Ui.numero(minimo.getText()));actualizar();}));
         var consultar=new Button("Consultar"); consultar.setOnAction(e->ejecutar(this::actualizar));
         var inicial=new Button("Stock inicial"); inicial.setOnAction(e->ejecutar(()->{
-            controlador.iniciar(UUID.randomUUID(),sku.getText(),almacen.getText(),numero()); actualizar();
+            controlador.iniciar(inicialId,sku.getText(),almacen.getText(),numero()); inicialId=UUID.randomUUID();cantidad.clear();actualizar();
         }));
         var compra=new Button("Entrada por compra"); compra.setOnAction(e->entrada(MovimientoStock.Tipo.COMPRA));
         var fabricacion=new Button("Entrada por fabricación"); fabricacion.setOnAction(e->entrada(MovimientoStock.Tipo.FABRICACION));
         var ajustar=new Button("Ajustar stock"); ajustar.setOnAction(e->{
             var motivo=new TextInputDialog(); motivo.setTitle("Ajuste de stock"); motivo.setHeaderText("Indica el motivo del ajuste");
             motivo.showAndWait().ifPresent(texto->ejecutar(()->{
-                controlador.ajustar(UUID.randomUUID(),sku.getText(),almacen.getText(),numero(),texto); actualizar();
+                controlador.ajustar(ajusteId,sku.getText(),almacen.getText(),numero(),texto); ajusteId=UUID.randomUUID();cantidad.clear();actualizar();
             }));
         });
         movimientos.setEditable(false); movimientos.setWrapText(true);
@@ -44,12 +48,13 @@ public class StockView {
     private void entrada(MovimientoStock.Tipo tipo) {
         var referencia=new TextInputDialog(); referencia.setTitle("Entrada de stock"); referencia.setHeaderText("Referencia de la entrada (opcional)");
         referencia.showAndWait().ifPresent(texto->ejecutar(()->{
-            controlador.entrada(UUID.randomUUID(),sku.getText(),almacen.getText(),tipo,numero(),texto); actualizar();
+            controlador.entrada(entradaId,sku.getText(),almacen.getText(),tipo,numero(),texto); entradaId=UUID.randomUUID();cantidad.clear();actualizar();
         }));
     }
     private void actualizar() {
         var actual=controlador.consultar(sku.getText(),almacen.getText());
         saldo.setText(actual.map(s->"Físico: "+s.fisico().toPlainString()+" | Reservado: "+s.reservado().toPlainString()+" | Disponible: "+s.disponible().toPlainString()).orElse("Aún no hay stock inicial"));
+        if(actual.isPresent()&&controlador.stockBajo(sku.getText(),almacen.getText()))saldo.setText(saldo.getText()+" · STOCK BAJO / AGOTADO");
         var texto=new StringBuilder();
         for (var m:controlador.historial(sku.getText(),almacen.getText()))
             texto.append(m.fecha()).append(" | ").append(m.tipo()).append(" | Cambio: ").append(m.cambioFisico().toPlainString()).append(" | ").append(m.motivo()).append('\n');
