@@ -1,8 +1,10 @@
-# Cuadre y Stock · beta de pruebas 0.1.1
+# Cuadre y Stock · beta de pruebas 0.1.2
 
 Esta versión conecta pantallas con las funciones ya implementadas. Es una beta para probar con datos de demostración: todavía no es la entrega completa del plan.
 
 La versión 0.1.1 incorpora un tema oscuro de tonos suaves en formularios, tablas, pestañas y mensajes. En Catálogo, escribe el texto y pulsa **Enter** o **Buscar**: ambos reinician la paginación y ejecutan la misma búsqueda.
+
+La versión 0.1.2 añade controles visibles en la esquina superior derecha, tanto al conectar como en la sesión principal: **Minimizar** envía la ventana a la barra de tareas; **Maximizar** ocupa el área de trabajo y cambia a **Restaurar**, que recupera el tamaño anterior; **Cerrar** solicita el cierre normal de la ventana. Cerrar el programa no realiza el cuadre ni cierra el turno de Caja: usa **Caja y cierre** para esa operación. Los controles habituales de Windows también se conservan.
 
 ## Abrir el programa
 
@@ -47,6 +49,8 @@ Las consultas están limitadas a 100 resultados. Catálogo permite buscar y avan
 No están disponibles todavía compras con su documento y entrada coordinada, cambios de producto, devoluciones parciales, reportes Excel, reconstrucción histórica completa, respaldos y restauración, ni administración independiente de listas. La exportación, impresión y facturación electrónica no forman parte de estas pantallas; la impresión y la emisión electrónica ya estaban fuera de esta beta inicial.
 
 ## Verificación de entrega
+
+Para la versión 0.1.2 pasaron 40 pruebas Maven y se omitieron 14 de integración. Se compiló y generó el paquete Windows con los nuevos controles. Windows bloqueó el inicio de este ejecutable con el mensaje «Una directiva de Control de aplicaciones bloqueó este archivo». No se pudo validar visualmente minimizar, maximizar, restaurar y cerrar en esta versión. No se cambiaron políticas de seguridad. Si el equipo del trabajo también bloquea su apertura, conserva el mensaje y consulta al responsable de ese equipo antes de continuar.
 
 En la versión 0.1.1 se ejecutaron 40 pruebas Maven con éxito; las 14 de integración se omitieron al no habilitar la base de pruebas en esa ejecución. Se generó y abrió el nuevo paquete Windows. Se revisaron el tema oscuro del catálogo y un mensaje, y la búsqueda real con Enter: de cinco artículos DEMO, buscar `Rinok` mostró únicamente sus tres coincidencias. Este cambio no modifica reglas ni tablas de la base de datos.
 

@@ -1,4 +1,4 @@
-param([string]$MavenCommand = 'mvn', [string]$MavenRepository = '', [string]$Destino = '', [string]$Version = '0.1.1', [switch]$SinConexion)
+param([string]$MavenCommand = 'mvn', [string]$MavenRepository = '', [string]$Destino = '', [string]$Version = '0.1.2', [switch]$SinConexion)
 $ErrorActionPreference='Stop'
 $proyecto=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location -LiteralPath $proyecto

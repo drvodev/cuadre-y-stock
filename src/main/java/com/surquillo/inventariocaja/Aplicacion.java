@@ -15,7 +15,7 @@ public class Aplicacion extends Application {
     private Stage escenario;
     @Override
     public void start(Stage escenario) {
-        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta de pruebas 0.1.1");
+        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta de pruebas 0.1.2");
         var host=Ui.campo("127.0.0.1");host.setText("127.0.0.1");var puerto=Ui.campo("5432");puerto.setText("5432");var base=Ui.campo("postgres");base.setText("postgres");var usuario=Ui.campo("postgres");usuario.setText("postgres");var clave=new PasswordField();var esquema=Ui.campo("cuadre_pruebas");esquema.setText("cuadre_pruebas");var estado=new Label("La contraseña se usa solo en esta sesión. No la escribas en el chat.");
         var conectar=new Button("Conectar e iniciar pruebas");
         conectar.setOnAction(e->{
@@ -43,7 +43,7 @@ public class Aplicacion extends Application {
         var barra=new HBox(16,new Label("BETA DE PRUEBAS · "+esquema),cargar,Ui.boton("Funciones pendientes",()->Ui.informar("Aún faltan compras documentadas, cambios de producto, reportes Excel, respaldos y restauración. Usa esta versión para probar catálogo, stock, ventas, separaciones y cierre con datos de demostración.")));barra.setPadding(new javafx.geometry.Insets(12));
         var raiz=new BorderPane(tabs,barra,null,null,null);escena(raiz);escenario.setMaximized(true);
     }
-    private void escena(javafx.scene.Parent raiz){var s=new Scene(raiz,1240,850);var css=getClass().getResource("/ui/beta.css");if(css!=null)s.getStylesheets().add(css.toExternalForm());escenario.setScene(s);}
+    private void escena(javafx.scene.Parent raiz){var marco=new BorderPane(raiz,BarraVentana.crear(escenario),null,null,null);var s=new Scene(marco,1240,850);var css=getClass().getResource("/ui/beta.css");if(css!=null)s.getStylesheets().add(css.toExternalForm());escenario.setScene(s);}
     public static void main(String[] args) {
         launch(args);
     }

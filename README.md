@@ -26,6 +26,8 @@ Para construir un paquete desde las fuentes: ejecutar primero las pruebas y desp
 
 La beta de pruebas 0.1.1 usa un tema oscuro de tonos suaves, también en los mensajes. En Catálogo se busca con Enter o con el botón Buscar; ambas acciones vuelven a la primera página. Se verificó esta búsqueda en el ejecutable Windows con los datos DEMO. La versión del paquete puede indicarse con `-Version` al construirlo.
 
+La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en conexión y pantalla principal. Conserva los controles nativos de Windows. Cerrar la ventana no cierra el turno de Caja. Pasaron 40 pruebas Maven y se omitieron 14 integraciones. El paquete se generó, pero Control de aplicaciones de Windows bloqueó su apertura en este equipo; los nuevos controles aún requieren validación visual. Ver la guía para el alcance de cada entrega.
+
 ## Documentación
 
 - [Estado, decisiones, operación y pendientes](docs/ESTADO-Y-OPERACION.md).

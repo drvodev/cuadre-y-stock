@@ -45,3 +45,7 @@
 .date-picker-popup .day-cell:hover, .date-picker-popup .selected { -fx-background-color: #4b7380; }
 .dialog-pane { -fx-background-color: #26323d; }
 .dialog-pane .header-panel { -fx-background-color: #32424f; }
+.barra-ventana { -fx-background-color: #1b232c; -fx-border-color: transparent transparent #435361 transparent; }
+.barra-ventana .button { -fx-background-color: #354553; -fx-min-width: 96; }
+.barra-ventana .button:hover { -fx-background-color: #4b6575; }
+.barra-ventana .cerrar-ventana:hover { -fx-background-color: #9b4850; }

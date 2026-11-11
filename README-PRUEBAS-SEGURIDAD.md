@@ -1,5 +1,9 @@
 # Pruebas de seguridad y resultados
 
+## Controles de ventana, versión 0.1.2
+
+Se añadió BarraVentana, compartida por las pantallas de conexión y principal. Minimiza mediante el estado de la ventana, alterna maximización/restauración y solicita el cierre normal respetando el evento de cierre. El texto Maximizar/Restaurar está vinculado al estado real de la ventana. La suite Maven pasó 40 pruebas y omitió 14 integraciones; se generó el paquete Windows. Su apertura fue bloqueada por Control de aplicaciones de Windows, por lo que no se validaron visualmente estos botones. No se modificaron políticas de seguridad ni se presenta la compilación como una validación visual.
+
 ## Tema oscuro y búsqueda con Enter, versión 0.1.1
 
 Se sustituyó el fondo claro por tonos oscuros suaves y se aplicó el mismo estilo a mensajes y confirmaciones. Catálogo comparte la búsqueda desde la primera página entre Enter y el botón Buscar. Maven pasó 40 pruebas y omitió 14 de integración al no habilitar PostgreSQL de prueba; no se modificaron las reglas ni las tablas. El paquete Windows se abrió y se verificaron el catálogo oscuro, un mensaje y la búsqueda con Enter de `Rinok`: tres coincidencias entre los cinco artículos DEMO. No se repitió la suite de integración en esta revisión visual.
