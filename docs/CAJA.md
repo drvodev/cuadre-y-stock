@@ -19,13 +19,15 @@ El flujo digital por medio es un neto de movimientos, no el saldo de una cuenta 
 
 ## Alcance de la API
 
-`CajaService.cobrar` valida el importe que recibe del módulo comercial. Todavía no consulta una venta, su saldo, precio o reserva. La venta pagada y los abonos de separaciones deberán suministrarse mediante eventos vinculados a sus documentos y confirmarse junto con sus efectos de Stock en una transacción común.
+`CajaService.cobrar` valida el importe recibido del módulo comercial; `VentaService` aporta la venta y su saldo, registra los ítems históricos y coordina los efectos de Stock en la unidad de trabajo. La huella del cobro incluye el total y el efectivo recibido para que un reintento no pueda cambiar el vuelto.
 
 `TurnoMemoriaRepository` comprueba atomicidad y concurrencia dentro de un proceso. Sus datos y los identificadores usados se pierden al cerrar la aplicación. `TurnoPostgresRepository` persiste turnos, movimientos, líneas, verificaciones y cierres. Las solicitudes guardan la versión del resultado original para recuperar reintentos después de movimientos o cierres posteriores. El efectivo recibido y el vuelto no forman parte del libro de movimientos: este guarda únicamente importes aplicados; su incorporación al recibo comercial queda pendiente.
 
-`UnidadTrabajoPostgres` permite compartir una conexión entre repositorios: los commits internos se posponen hasta finalizar la operación externa y un rollback interno obliga a revertir toda la operación. Se comprobó un cobro y descuento de stock coordinados y su rollback conjunto. Todavía no existe el flujo comercial completo de documento, ítems y pago que debe utilizar esa unidad de trabajo.
+`UnidadTrabajoPostgres` permite compartir una conexión entre repositorios: los commits internos se posponen hasta finalizar la operación externa y un rollback interno obliga a revertir toda la operación. Se comprobó un cobro y descuento de stock coordinados y su rollback conjunto. Ventas, separaciones, abonos, entregas y anulaciones completas ya utilizan esa unidad de trabajo; compras y cambios de producto están pendientes.
 
 ## Pruebas y continuación
+
+Actualización comercial: la última suite completa pasó 53 pruebas sin omisiones, incluidas 13 de integración PostgreSQL. Añade venta y separación integradas, numeración, devolución posterior y regresiones del efectivo recibido. Los resultados anteriores de esta sección corresponden al hito previo.
 
 Seis pruebas específicas verifican el cuadre del plan, vuelto y fuentes externas, validación de importes, reintentos, cierres obsoletos, apertura concurrente y conciliación digital. La suite completa ejecutó 47 pruebas exitosas, incluidas nueve de integración PostgreSQL; no se omitieron pruebas en esa ejecución.
 

@@ -33,18 +33,22 @@ public class CajaService {
         BigDecimal aplicado=lineas.getOrDefault(MedioPago.EFECTIVO,BigDecimal.ZERO);
         if(recibido.compareTo(aplicado)<0 || (aplicado.signum()==0 && recibido.signum()!=0))
             throw new ValidacionException("Revisa el efectivo recibido");
-        var estado=registrar(solicitud,turno,MovimientoCaja.Tipo.COBRO,MovimientoCaja.Fuente.CAJA,lineas,referencia);
+        var estado=registrar(solicitud,turno,MovimientoCaja.Tipo.COBRO,MovimientoCaja.Fuente.CAJA,lineas,referencia,huella("COBRO",monto,recibido));
         return new Cobro(estado,recibido.subtract(aplicado));
     }
     public TurnoRepository.Estado registrar(UUID solicitud,UUID turno,MovimientoCaja.Tipo tipo,MovimientoCaja.Fuente fuente,
                                             Map<MedioPago,BigDecimal> pagos,String referencia) {
+        return registrar(solicitud,turno,tipo,fuente,pagos,referencia,"");
+    }
+    private TurnoRepository.Estado registrar(UUID solicitud,UUID turno,MovimientoCaja.Tipo tipo,MovimientoCaja.Fuente fuente,
+                                             Map<MedioPago,BigDecimal> pagos,String referencia,String contextoCobro) {
         Objects.requireNonNull(tipo); Objects.requireNonNull(fuente);
         Map<MedioPago,BigDecimal> lineas=lineas(pagos); String ref=texto(referencia,"Referencia");
         if((tipo==MovimientoCaja.Tipo.COBRO || tipo==MovimientoCaja.Tipo.OTRO_INGRESO) && fuente!=MovimientoCaja.Fuente.CAJA)
             throw new ValidacionException("Los ingresos requieren una caja");
         if(tipo==MovimientoCaja.Tipo.RETIRO && (fuente!=MovimientoCaja.Fuente.CAJA || lineas.size()!=1 || !lineas.containsKey(MedioPago.EFECTIVO)))
             throw new ValidacionException("El retiro de fondos debe ser efectivo desde caja");
-        var partes=new ArrayList<Object>(); partes.add("REGISTRAR"); partes.add(tipo); partes.add(fuente); partes.add(ref);
+        var partes=new ArrayList<Object>(); partes.add("REGISTRAR"); partes.add(tipo); partes.add(fuente); partes.add(ref); partes.add(contextoCobro);
         for(var medio:MedioPago.values()) if(lineas.containsKey(medio)) { partes.add(medio); partes.add(lineas.get(medio)); }
         var comando=huella(partes.toArray());
         String caja=consultar(turno).turno().caja();

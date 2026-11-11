@@ -76,4 +76,11 @@ class CajaServiceTest {
         var cierre=caja.cerrar(UUID.randomUUID(),turno,v,n("100"),"Encargado","Operación Visa pendiente de cotejo",Map.of(MedioPago.VISA,distinta));
         assertTrue(cierre.cierre().digitales().get(MedioPago.VISA).tieneDiferencia()); igual("100",cierre.cierre().efectivoEsperado());
     }
+    @Test void reintentoNoPuedeCambiarEfectivoRecibidoNiVuelto() {
+        abrir(); var id=UUID.randomUUID(); var pagos=Map.of(MedioPago.EFECTIVO,n("10"));
+        var original=caja.cobrar(id,turno,n("10"),pagos,n("10"),"venta");
+        assertEquals(original,caja.cobrar(id,turno,n("10.00"),pagos,n("10.0"),"venta"));
+        assertThrows(ValidacionException.class,()->caja.cobrar(id,turno,n("10"),pagos,n("20"),"venta"));
+        assertEquals(1,caja.consultar(turno).movimientos().size()); igual("110",caja.efectivoEsperado(turno));
+    }
 }

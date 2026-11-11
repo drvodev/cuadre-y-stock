@@ -8,7 +8,7 @@ import java.util.HexFormat;
 
 /** Aplicación explícita y transaccional de versiones. No adopta esquemas antiguos automáticamente. */
 public final class MigracionesPostgres {
-    private static final String[] ARCHIVOS={"/db/catalogo-v1.sql","/db/stock-v1.sql","/db/stock-catalogo-v3.sql","/db/caja-v4.sql","/db/caja-conciliacion-v5.sql"};
+    private static final String[] ARCHIVOS={"/db/catalogo-v1.sql","/db/stock-v1.sql","/db/stock-catalogo-v3.sql","/db/caja-v4.sql","/db/caja-conciliacion-v5.sql","/db/operaciones-v6.sql","/db/anulaciones-v7.sql"};
     private MigracionesPostgres() {}
     public static void aplicar(DataSource ds) throws Exception {
         try(Connection c=ds.getConnection()) {

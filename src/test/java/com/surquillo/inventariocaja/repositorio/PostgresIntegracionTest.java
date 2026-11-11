@@ -1,6 +1,7 @@
 package com.surquillo.inventariocaja.repositorio;
 
 import com.surquillo.inventariocaja.modelo.stock.*;
+import com.surquillo.inventariocaja.modelo.caja.*;
 import com.surquillo.inventariocaja.servicio.*;
 import com.surquillo.inventariocaja.excepcion.PersistenciaException;
 import com.surquillo.inventariocaja.excepcion.ValidacionException;
@@ -136,6 +137,7 @@ class PostgresIntegracionTest {
         assertEquals(cierre,reinicio.consultar(turno));
         assertEquals(inicial,reinicio.abrir(abrir,turno,"Caja A",java.time.LocalDate.of(2026,1,1),"Encargado",n("100")));
         assertEquals(cobro,reinicio.cobrar(cobroId,turno,n("150"),pagos,n("100"),"B3847"));
+        assertThrows(ValidacionException.class,()->reinicio.cobrar(cobroId,turno,n("150"),pagos,n("200"),"B3847"));
         assertThrows(ValidacionException.class,()->reinicio.cobrar(UUID.randomUUID(),turno,n("150"),pagos,n("100"),"otra"));
     }
     @Test void cajaRevierteMovimientoCuandoFallaUnaLinea() throws Exception {
@@ -163,5 +165,61 @@ class PostgresIntegracionTest {
             inventarioCompartido.venta(UUID.randomUUID(),clave,n("1"),"B1"); return null;
         });
         igual("1",inventarioCompartido.consultar(clave).orElseThrow().fisico()); assertEquals(1,caja.consultar(turno).movimientos().size());
+    }
+    @Test void ventaCompletaPersisteDocumentoCobroEItemsLibresConStockCero() {
+        var caja=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC()); var turno=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Caja A",java.time.LocalDate.now(),"Encargado",n("0"));
+        inventario.iniciar(UUID.randomUUID(),clave,false,n("0"),"");
+        var ventas=new VentaService(ds,Clock.systemUTC()); var id=UUID.randomUUID(); var solicitud=UUID.randomUUID();
+        var items=java.util.List.of(new ItemOperacion(clave.sku(),clave.almacen(),"Bolsa","bolsa",n("1"),n("20"),""),new ItemOperacion("","","Caja 45x45","caja",n("1"),n("30"),"Blanco"));
+        var doc=new Documento(Documento.Tipo.BOLETA,"B3847",true); var pagos=java.util.Map.of(MedioPago.EFECTIVO,n("50"));
+        ventas.registrar(solicitud,id,turno,Operacion.Modalidad.VENTA,doc,"","",items,pagos,n("100"),java.util.Map.of());
+        ventas.registrar(solicitud,id,turno,Operacion.Modalidad.VENTA,doc,"","",items,pagos,n("100"),java.util.Map.of());
+        assertEquals(Operacion.Estado.ENTREGADA,ventas.consultar(id).estado()); assertEquals(2,ventas.consultar(id).items().size());
+        igual("0",inventario.consultar(clave).orElseThrow().fisico()); igual("50",caja.efectivoEsperado(turno));
+        assertEquals(1,caja.consultar(turno).movimientos().size()); assertEquals("B3848",ventas.sugerirNumero(Documento.Tipo.BOLETA,"B").orElseThrow());
+    }
+    @Test void separacionIntegraFaltanteAbonosEIngresoSinDuplicarEntrega() {
+        var caja=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC()); var turno=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Caja A",java.time.LocalDate.now(),"Encargado",n("0")); inventario.iniciar(UUID.randomUUID(),clave,false,n("2"),"");
+        var ventas=new VentaService(ds,Clock.systemUTC()); var id=UUID.randomUUID();
+        var items=java.util.List.of(new ItemOperacion(clave.sku(),clave.almacen(),"Material","unidad",n("5"),n("100"),""));
+        var doc=new Documento(Documento.Tipo.NOTA_VENTA,"N100",true); var pago=java.util.Map.of(MedioPago.EFECTIVO,n("200"));
+        assertThrows(ValidacionException.class,()->ventas.registrar(UUID.randomUUID(),id,turno,Operacion.Modalidad.SEPARACION,doc,"Cliente","Contacto",items,pago,n("200"),java.util.Map.of()));
+        assertTrue(caja.consultar(turno).movimientos().isEmpty());
+        ventas.registrar(UUID.randomUUID(),id,turno,Operacion.Modalidad.SEPARACION,doc,"Cliente","Contacto",items,pago,n("200"),java.util.Map.of(0,n("2")));
+        assertThrows(ValidacionException.class,()->ventas.entregar(UUID.randomUUID(),id,null));
+        var abono=UUID.randomUUID(); var adicionales=java.util.Map.of(MedioPago.YAPE,n("300"));
+        ventas.abonar(abono,id,turno,adicionales,n("0")); ventas.abonar(abono,id,turno,adicionales,n("0"));
+        assertThrows(ValidacionException.class,()->ventas.entregar(UUID.randomUUID(),id,null));
+        inventario.entrada(UUID.randomUUID(),clave,MovimientoStock.Tipo.COMPRA,n("3"),"reposición");
+        var entrega=UUID.randomUUID(); var finalDoc=new Documento(Documento.Tipo.BOLETA,"B1",true);
+        ventas.entregar(entrega,id,finalDoc); ventas.entregar(entrega,id,finalDoc);
+        assertThrows(ValidacionException.class,()->ventas.entregar(UUID.randomUUID(),id,null));
+        assertEquals(Operacion.Estado.ENTREGADA,ventas.consultar(id).estado()); igual("0",inventario.consultar(clave).orElseThrow().fisico());
+        assertEquals(2,caja.consultar(turno).movimientos().size()); igual("200",caja.efectivoEsperado(turno));
+    }
+    @Test void documentoDuplicadoNoCobraDosVecesYVentaIncompletaSeRechaza() {
+        var caja=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC()); var turno=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Caja A",java.time.LocalDate.now(),"Encargado",n("0")); var ventas=new VentaService(ds,Clock.systemUTC());
+        var items=java.util.List.of(new ItemOperacion("","","Espejo","unidad",n("1"),n("100"),""));
+        var doc=new Documento(Documento.Tipo.BOLETA,"B3900",true); var pago=java.util.Map.of(MedioPago.EFECTIVO,n("100"));
+        assertThrows(ValidacionException.class,()->ventas.registrar(UUID.randomUUID(),UUID.randomUUID(),turno,Operacion.Modalidad.VENTA,doc,"","",items,java.util.Map.of(MedioPago.EFECTIVO,n("50")),n("50"),java.util.Map.of()));
+        ventas.registrar(UUID.randomUUID(),UUID.randomUUID(),turno,Operacion.Modalidad.VENTA,doc,"","",items,pago,n("100"),java.util.Map.of());
+        assertThrows(PersistenciaException.class,()->ventas.registrar(UUID.randomUUID(),UUID.randomUUID(),turno,Operacion.Modalidad.VENTA,doc,"","",items,pago,n("100"),java.util.Map.of()));
+        igual("100",caja.efectivoEsperado(turno)); assertEquals(1,caja.consultar(turno).movimientos().size());
+        assertEquals("B3901",ventas.sugerirNumero(Documento.Tipo.BOLETA,"B").orElseThrow());
+    }
+    @Test void anulacionPosteriorDevuelveDineroYStockSinAlterarCierre() {
+        var caja=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC()); var turno=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Caja A",java.time.LocalDate.of(2026,1,1),"Encargado",n("0")); inventario.iniciar(UUID.randomUUID(),clave,false,n("1"),"");
+        var ventas=new VentaService(ds,Clock.systemUTC()); var op=UUID.randomUUID(); var pagos=java.util.Map.of(MedioPago.EFECTIVO,n("100"));
+        ventas.registrar(UUID.randomUUID(),op,turno,Operacion.Modalidad.VENTA,new Documento(Documento.Tipo.BOLETA,"B1",true),"","",java.util.List.of(new ItemOperacion(clave.sku(),clave.almacen(),"Espejo","unidad",n("1"),n("100"),"")),pagos,n("100"),java.util.Map.of());
+        var cierre=caja.cerrar(UUID.randomUUID(),turno,caja.consultar(turno).turno().version(),n("100"),"Encargado","");
+        var siguiente=UUID.randomUUID(); caja.abrir(UUID.randomUUID(),siguiente,"Caja A",java.time.LocalDate.of(2026,1,2),"Encargado",n("100"));
+        var solicitud=UUID.randomUUID(); ventas.anular(solicitud,op,siguiente,"Devolución completa",pagos,java.util.Set.of(0)); ventas.anular(solicitud,op,siguiente,"Devolución completa",pagos,java.util.Set.of(0));
+        assertEquals(cierre,caja.consultar(turno)); igual("0",caja.efectivoEsperado(siguiente)); igual("1",inventario.consultar(clave).orElseThrow().fisico());
+        assertEquals(Operacion.Estado.ANULADA,ventas.buscarDocumento(Documento.Tipo.BOLETA,"b1").estado()); igual("0",ventas.consultar(op).saldo());
+        assertThrows(ValidacionException.class,()->ventas.anular(UUID.randomUUID(),op,siguiente,"Otra",pagos,java.util.Set.of(0)));
     }
 }

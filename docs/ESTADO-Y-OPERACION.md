@@ -4,6 +4,8 @@ Documento actualizado el 10 de noviembre de 2026. Referencia funcional: beta 3.1
 
 Caja tiene apertura, cobros, egresos, cierre manual y conciliación digital con persistencia PostgreSQL. La unidad de trabajo compartida está probada con efectos coordinados de Stock y Caja; aún falta integrarla con documentos y ventas. Ver CAJA.md y BETA-ACEPTACION.md para el alcance completo.
 
+Actualización posterior: VentaService ya integra documentos, ítems históricos, venta completa, separaciones, abonos, entrega y anulación completa con Stock y Caja. Las pruebas comerciales están en PostgresIntegracionTest y el alcance en VENTAS.md. La suite más reciente pasó 53 pruebas, 13 de integración. El control de aceptación sigue pendiente del programa completo.
+
 ## Implementado y comprobado
 
 - Stock físico, reservado y disponible por SKU y almacén; cantidades enteras o de hasta tres decimales.

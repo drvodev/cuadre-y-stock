@@ -1,5 +1,11 @@
 # Pruebas de seguridad y resultados
 
+## Corrección de reintento del efectivo recibido e integración comercial
+
+Se reprodujo el fallo señalado por la auditoría: repetir un cobro con el mismo UUID y otro efectivo recibido podía cambiar el vuelto aunque se reutilizara el movimiento. `CajaService.cobrar` ahora incorpora al contenido idempotente tanto el importe a cobrar como el efectivo recibido, normalizados a dos decimales. El reintento con otro efectivo se rechaza; el reintento equivalente conserva el resultado. Las regresiones en memoria y PostgreSQL pasaron, incluida la recuperación del reintento después de cerrar el turno con una instancia nueva del servicio.
+
+La suite completa posterior pasó 53 pruebas sin omisiones, 13 contra PostgreSQL aislado. Se verificaron además documentos, venta incompleta, stock cero, líneas libres, abonos, reserva insuficiente, entrega única, documento duplicado y anulación en el turno posterior. Los registros de solicitudes anteriores a esta corrección tienen un contenido distinto: no se convierten automáticamente; deben consultarse por su estado y no reintentarse como cobros nuevos. No hay datos reales migrados en esta revisión.
+
 ## Persistencia de Caja y transacciones compartidas
 
 La ejecución más reciente de Maven pasó 47 pruebas sin errores ni omisiones, nueve de integración PostgreSQL. Se añadieron persistencia de Caja, recuperación del resultado original tras un cierre, rollback por una línea fallida, coordinación transaccional entre Stock y Caja y conciliación digital persistente. Se usó una instancia aislada con credenciales temporales fuera del repositorio. No se validó todavía una operación comercial completa ni el programa empaquetado; la matriz BETA-ACEPTACION.md conserva esos pendientes.
@@ -65,3 +71,11 @@ Tras la entrega `e1bed30`, se ejecutó el ciclo Maven del proyecto con las depen
 Se intentó preparar una instancia PostgreSQL aislada para repetir las seis pruebas de integración, pero la inicialización quedó sin terminar y se interrumpió; no quedó un servidor iniciado. Por ello esta revisión no las ejecutó de forma independiente. El agente que implementó el cambio informó de 38 pruebas exitosas, incluidas esas seis con PostgreSQL 17; ese resultado está descrito en `docs/ESTADO-Y-OPERACION.md`.
 
 La configuración de conexión acepta una URL JDBC sin exigir cifrado ni verificación del servidor. Antes de conectar equipos por red, definir y comprobar una configuración TLS con verificación del servidor y los permisos de la cuenta; las pruebas existentes no lo validan. La integración de Caja y pago con el despacho sigue pendiente, por lo que no debe interpretarse la autorización simulada como una garantía de pago real.
+
+## Verificación independiente de PostgreSQL y Caja
+
+El 11 de noviembre de 2026 se probó una copia del commit `1d2a542` con PostgreSQL 17 local, aislado y con datos de prueba. Maven ejecutó **47 pruebas: 47 exitosas y ninguna omitida**, incluidas nueve de integración PostgreSQL, entre ellas las seis anteriormente pendientes. Se detuvo el servidor temporal después de la prueba. Este resultado corresponde exclusivamente a esa versión: la implementación continuaba cambiando en paralelo.
+
+**Hallazgo abierto: reintento de cobro con efectivo recibido distinto.** En esa versión, un cobro en efectivo de 10 con 10 recibidos devuelve 0; al repetir el mismo identificador con 20 recibidos, el registro se reutiliza pero se devuelve un vuelto de 10. El efectivo recibido no participa en la validación de identidad de la solicitud y no se conserva como parte del resultado. Una prueba independiente que exige rechazar el cambio falló de forma reproducible. Es necesario definir y conservar el resultado del cobro o rechazar la reutilización con datos distintos, añadir pruebas de regresión y verificar también el caso persistido en PostgreSQL. El archivo de prueba de auditoría está en `work/revision-1d2a542/src/test/java/com/surquillo/inventariocaja/servicio/CobroReintentoAuditoriaTest.java`, fuera del código del proyecto.
+
+El uso previsto actualmente es local; la comprobación de TLS solo corresponde cuando se habiliten conexiones entre equipos. La revisión no certifica todas las funciones: el desarrollo continuaba y las pantallas, integración completa y recuperación siguen requiriendo validación.
