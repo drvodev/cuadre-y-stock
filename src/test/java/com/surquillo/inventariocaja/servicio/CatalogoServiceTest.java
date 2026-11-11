@@ -37,6 +37,11 @@ class CatalogoServiceTest {
         assertEquals(1,editado.version()); assertThrows(ValidacionException.class,()->servicio.actualizar(original));
         assertTrue(servicio.buscar("","",10,false).isEmpty()); assertEquals(1,servicio.buscar("nuevo","",10,true).size());
     }
+    @Test void noCambiaAutomaticamenteUnidadDeStock() {
+        servicio.crear(item("a","A","bolsa",null,"",n("2"),null,true,0));
+        assertThrows(ValidacionException.class,()->servicio.actualizar(item("a","A","caja",null,"",n("2"),null,true,0)));
+        assertEquals("bolsa",servicio.buscarSku("a").orElseThrow().unidad());
+    }
     @Test void paginaUnCatalogoGrandeSinRepetirArticulos() {
         for (int i=0;i<2500;i++) servicio.crear(item(String.format("SKU-%04d",i),"Producto", "unidad",null,"",n("1"),null,true,0));
         String cursor=""; int total=0;

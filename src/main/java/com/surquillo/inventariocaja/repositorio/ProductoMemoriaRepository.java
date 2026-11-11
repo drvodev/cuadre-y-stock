@@ -15,6 +15,7 @@ public class ProductoMemoriaRepository implements ProductoRepository {
         Variante anterior = datos.get(articulo.sku());
         if (anterior == null || anterior.version() != articulo.version()) throw new ValidacionException("El artículo cambió o no existe; actualice la consulta");
         if (anterior.permiteFraccion() != articulo.permiteFraccion()) throw new ValidacionException("La precisión de la unidad no puede cambiarse automáticamente");
+        if (!anterior.unidad().equals(articulo.unidad())) throw new ValidacionException("La unidad de stock no puede cambiarse automáticamente");
         Variante nuevo = articulo.conVersion(articulo.version()+1); datos.put(nuevo.sku(),nuevo); return nuevo;
     }
     public synchronized Optional<Variante> buscarSku(String sku) { return Optional.ofNullable(datos.get(sku)); }

@@ -23,10 +23,10 @@ public class ProductoPostgresRepository implements ProductoRepository {
         }
     }
     @Override public Variante actualizar(Variante v) {
-        String sql="UPDATE catalogo_variante SET descripcion=?,categoria=?,marca=?,presentacion=?,tipo=?,unidad=?,permite_fraccion=?,origen=?,contenido=?,unidad_contenido=?,precio_venta=?,costo=?,activo=?,version=version+1 WHERE sku=? AND version=? AND permite_fraccion=?";
+        String sql="UPDATE catalogo_variante SET descripcion=?,categoria=?,marca=?,presentacion=?,tipo=?,unidad=?,permite_fraccion=?,origen=?,contenido=?,unidad_contenido=?,precio_venta=?,costo=?,activo=?,version=version+1 WHERE sku=? AND version=? AND permite_fraccion=? AND unidad=?";
         try (Connection c=dataSource.getConnection(); PreparedStatement p=c.prepareStatement(sql)) {
-            campos(p,v,1); p.setString(14,v.sku()); p.setLong(15,v.version()); p.setBoolean(16,v.permiteFraccion());
-            if (p.executeUpdate()!=1) throw new ValidacionException("El artículo cambió, no existe o su precisión no puede modificarse");
+            campos(p,v,1); p.setString(14,v.sku()); p.setLong(15,v.version()); p.setBoolean(16,v.permiteFraccion()); p.setString(17,v.unidad());
+            if (p.executeUpdate()!=1) throw new ValidacionException("El artículo cambió, no existe o su unidad no puede modificarse automáticamente");
             return v.conVersion(v.version()+1);
         } catch (SQLException e) { throw fallo(e); }
     }
