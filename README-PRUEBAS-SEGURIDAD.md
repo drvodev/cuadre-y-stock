@@ -29,3 +29,11 @@ Se intentó `mvn -o test`, pero Maven no pudo resolver sin conexión `maven-sure
 - No se probaron los flujos de reserva, reintentos con registros existentes ni todos los campos de escritura con cargas de inyección. Tampoco se ha hecho una prueba de penetración integral.
 - En una base PostgreSQL aislada y desechable, aplicar las migraciones correspondientes y repetir las pruebas con datos de prueba, verificando resultados y tablas intactas. Añadir casos para reservas, recuperación, concurrencia, rollback y reintentos. No usar una base de producción para estas pruebas.
 - La aplicación sigue en desarrollo; los resultados no certifican la seguridad global ni validan datos reales.
+
+## Pruebas de resistencia adicionales
+
+En una ejecución posterior del 10 de noviembre de 2026 se compilaron los modelos, servicios, repositorios, excepciones y pruebas con JDK 25 y JUnit 6.0.3. Resultado: **26 pruebas ejecutadas y 26 exitosas**. Esta ejecución excluyó la interfaz gráfica y no sustituyó el ciclo Maven del proyecto.
+
+Se añadieron pruebas con 60 reintentos concurrentes de una misma entrada, 40 intentos concurrentes de despacho con solicitudes diferentes, tres rechazos repetidos de autorización y una falla simulada durante la inserción del movimiento. Se comprobó que en memoria no se duplica la entrada ni el despacho, que el rechazo conserva el saldo y el historial, y que el repositorio PostgreSQL solicita `rollback` y no `commit` ante la excepción simulada.
+
+Las pruebas concurrentes usan únicamente el repositorio en memoria. La prueba del fallo de PostgreSQL simula JDBC: confirma las llamadas realizadas, no que un servidor haya revertido realmente los datos. Los límites y pasos pendientes anteriores siguen vigentes.
