@@ -1,0 +1,11 @@
+target/
+.idea/
+*.iml
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite*
+*.dump
+*.backup
+*.log
