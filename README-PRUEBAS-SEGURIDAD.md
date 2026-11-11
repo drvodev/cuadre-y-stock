@@ -1,5 +1,9 @@
 # Pruebas de seguridad y resultados
 
+## Persistencia de Caja y transacciones compartidas
+
+La ejecución más reciente de Maven pasó 47 pruebas sin errores ni omisiones, nueve de integración PostgreSQL. Se añadieron persistencia de Caja, recuperación del resultado original tras un cierre, rollback por una línea fallida, coordinación transaccional entre Stock y Caja y conciliación digital persistente. Se usó una instancia aislada con credenciales temporales fuera del repositorio. No se validó todavía una operación comercial completa ni el programa empaquetado; la matriz BETA-ACEPTACION.md conserva esos pendientes.
+
 ## Primera lógica de Caja
 
 Se añadieron cinco pruebas de Caja. La ejecución Maven posterior al cambio encontró 43 pruebas: 37 exitosas, cero fallos y seis de integración PostgreSQL omitidas al no habilitar la base de prueba. La lógica de Caja usa un repositorio en memoria; los resultados no acreditan persistencia, recuperación, integración comercial ni uso de dinero real. Ver docs/CAJA.md.

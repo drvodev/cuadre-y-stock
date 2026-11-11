@@ -5,6 +5,7 @@ import com.surquillo.inventariocaja.servicio.*;
 import com.surquillo.inventariocaja.excepcion.PersistenciaException;
 import com.surquillo.inventariocaja.excepcion.ValidacionException;
 import com.surquillo.inventariocaja.configuracion.MigracionesPostgres;
+import com.surquillo.inventariocaja.configuracion.UnidadTrabajoPostgres;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -122,5 +123,45 @@ class PostgresIntegracionTest {
             s.executeUpdate("UPDATE app_migracion SET hash='alterado' WHERE version=1");
         }
         assertThrows(java.sql.SQLException.class,()->MigracionesPostgres.aplicar(ds));
+    }
+    @Test void cajaPersisteCierreYRecuperaReintentosOriginales() {
+        var caja=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC());
+        var turno=UUID.randomUUID(); var abrir=UUID.randomUUID();
+        var inicial=caja.abrir(abrir,turno,"Caja A",java.time.LocalDate.of(2026,1,1),"Encargado",n("100"));
+        var cobroId=UUID.randomUUID(); var pagos=java.util.Map.of(com.surquillo.inventariocaja.modelo.caja.MedioPago.EFECTIVO,n("50"),com.surquillo.inventariocaja.modelo.caja.MedioPago.YAPE,n("100"));
+        var cobro=caja.cobrar(cobroId,turno,n("150"),pagos,n("100"),"B3847");
+        long version=caja.consultar(turno).turno().version();
+        var cierre=caja.cerrar(UUID.randomUUID(),turno,version,n("150"),"Encargado","",java.util.Map.of(com.surquillo.inventariocaja.modelo.caja.MedioPago.YAPE,new com.surquillo.inventariocaja.modelo.caja.VerificacionMedio(n("100"),n("0"),n("0"),n("0"))));
+        var reinicio=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC());
+        assertEquals(cierre,reinicio.consultar(turno));
+        assertEquals(inicial,reinicio.abrir(abrir,turno,"Caja A",java.time.LocalDate.of(2026,1,1),"Encargado",n("100")));
+        assertEquals(cobro,reinicio.cobrar(cobroId,turno,n("150"),pagos,n("100"),"B3847"));
+        assertThrows(ValidacionException.class,()->reinicio.cobrar(UUID.randomUUID(),turno,n("150"),pagos,n("100"),"otra"));
+    }
+    @Test void cajaRevierteMovimientoCuandoFallaUnaLinea() throws Exception {
+        var caja=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC()); var turno=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Caja A",java.time.LocalDate.now(),"Encargado",n("0"));
+        try(Connection c=ds.getConnection();var s=c.createStatement()) { s.execute("ALTER TABLE caja_linea ADD CONSTRAINT prueba_linea CHECK (medio <> 'VISA')"); }
+        assertThrows(PersistenciaException.class,()->caja.cobrar(UUID.randomUUID(),turno,n("150"),java.util.Map.of(com.surquillo.inventariocaja.modelo.caja.MedioPago.EFECTIVO,n("50"),com.surquillo.inventariocaja.modelo.caja.MedioPago.VISA,n("100")),n("50"),"venta"));
+        assertTrue(caja.consultar(turno).movimientos().isEmpty()); assertEquals(0,caja.consultar(turno).turno().version());
+    }
+    @Test void cajaYStockSeConfirmanOReviertenJuntos() throws Exception {
+        var unidad=new UnidadTrabajoPostgres(ds);
+        var caja=new CajaService(new TurnoPostgresRepository(unidad),Clock.systemUTC());
+        var inventarioCompartido=new InventarioService(new StockPostgresRepository(unidad),Clock.systemUTC());
+        var turno=UUID.randomUUID(); var cobro=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Caja A",java.time.LocalDate.now(),"Encargado",n("0"));
+        inventarioCompartido.iniciar(UUID.randomUUID(),clave,false,n("2"),"");
+        var pagos=java.util.Map.of(com.surquillo.inventariocaja.modelo.caja.MedioPago.EFECTIVO,n("20"));
+        assertThrows(ValidacionException.class,()->unidad.ejecutar(()-> {
+            caja.cobrar(cobro,turno,n("20"),pagos,n("20"),"B1");
+            inventarioCompartido.venta(UUID.randomUUID(),clave,n("-1"),"B1"); return null;
+        }));
+        assertTrue(caja.consultar(turno).movimientos().isEmpty()); igual("2",inventarioCompartido.consultar(clave).orElseThrow().fisico());
+        unidad.ejecutar(()-> {
+            caja.cobrar(cobro,turno,n("20"),pagos,n("20"),"B1");
+            inventarioCompartido.venta(UUID.randomUUID(),clave,n("1"),"B1"); return null;
+        });
+        igual("1",inventarioCompartido.consultar(clave).orElseThrow().fisico()); assertEquals(1,caja.consultar(turno).movimientos().size());
     }
 }

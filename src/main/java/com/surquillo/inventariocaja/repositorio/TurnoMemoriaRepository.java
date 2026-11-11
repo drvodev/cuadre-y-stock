@@ -6,12 +6,12 @@ import java.util.function.Function;
 
 /** Implementación de prueba; los datos no sobreviven al cierre del proceso. */
 public class TurnoMemoriaRepository implements TurnoRepository {
-    private record Solicitud(Object comando,String caja,UUID turno,Estado resultado) {}
+    private record Solicitud(String comando,String caja,UUID turno,Estado resultado) {}
     private final Map<UUID,Estado> turnos=new HashMap<>();
     private final Map<String,UUID> abiertos=new HashMap<>();
     private final Map<UUID,Solicitud> solicitudes=new HashMap<>();
     @Override public synchronized Optional<Estado> consultar(UUID id) { return Optional.ofNullable(turnos.get(id)); }
-    @Override public synchronized Estado aplicar(UUID id,Object comando,String caja,UUID turno,Function<Optional<Estado>,Estado> cambio) {
+    @Override public synchronized Estado aplicar(UUID id,String comando,String caja,UUID turno,Function<Optional<Estado>,Estado> cambio) {
         Objects.requireNonNull(id); Objects.requireNonNull(comando); Objects.requireNonNull(caja); Objects.requireNonNull(turno);
         var previa=solicitudes.get(id);
         if(previa!=null) {

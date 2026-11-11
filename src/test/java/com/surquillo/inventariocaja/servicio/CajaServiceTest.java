@@ -62,4 +62,18 @@ class CajaServiceTest {
             var a=pool.submit(tarea); var b=pool.submit(tarea); inicio.countDown(); assertNotEquals(a.get(5,TimeUnit.SECONDS),b.get(5,TimeUnit.SECONDS));
         } finally { pool.shutdownNow(); }
     }
+    @Test void conciliaCobrosDevolucionesYEgresosDigitalesPorSeparado() {
+        abrir();
+        caja.cobrar(UUID.randomUUID(),turno,n("100"),Map.of(MedioPago.VISA,n("100")),n("0"),"venta");
+        caja.registrar(UUID.randomUUID(),turno,MovimientoCaja.Tipo.DEVOLUCION,MovimientoCaja.Fuente.CAJA,Map.of(MedioPago.VISA,n("20")),"devolución");
+        caja.registrar(UUID.randomUUID(),turno,MovimientoCaja.Tipo.GASTO,MovimientoCaja.Fuente.CAJA,Map.of(MedioPago.VISA,n("10")),"gasto");
+        var esperado=new VerificacionMedio(n("100"),n("20"),n("10"),n("0"));
+        assertEquals(esperado,caja.resumenDigital(turno).get(MedioPago.VISA));
+        long v=caja.consultar(turno).turno().version();
+        assertThrows(ValidacionException.class,()->caja.cerrar(UUID.randomUUID(),turno,v,n("100"),"Encargado",""));
+        var distinta=new VerificacionMedio(n("99"),n("20"),n("10"),n("0"));
+        assertThrows(ValidacionException.class,()->caja.cerrar(UUID.randomUUID(),turno,v,n("100"),"Encargado","",Map.of(MedioPago.VISA,distinta)));
+        var cierre=caja.cerrar(UUID.randomUUID(),turno,v,n("100"),"Encargado","Operación Visa pendiente de cotejo",Map.of(MedioPago.VISA,distinta));
+        assertTrue(cierre.cierre().digitales().get(MedioPago.VISA).tieneDiferencia()); igual("100",cierre.cierre().efectivoEsperado());
+    }
 }

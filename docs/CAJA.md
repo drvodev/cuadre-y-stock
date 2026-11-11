@@ -1,6 +1,6 @@
 # Caja: primera etapa de lógica
 
-Actualizado el 10 de noviembre de 2026. Implementación inicial, con almacenamiento en memoria para pruebas. No usar para registrar dinero real.
+Actualizado el 10 de noviembre de 2026. Reglas de Caja con repositorios en memoria y PostgreSQL. El flujo comercial y las pantallas aún no están completos para registrar dinero real.
 
 ## Reglas implementadas
 
@@ -15,16 +15,18 @@ Actualizado el 10 de noviembre de 2026. Implementación inicial, con almacenamie
 Efectivo esperado = fondo + ingresos en efectivo de caja − egresos en efectivo de caja.
 Diferencia = contado − esperado.
 
-El flujo digital por medio es un neto de movimientos, no el saldo de una cuenta bancaria. Todavía falta la conciliación separada de cobros, devoluciones y egresos digitales.
+El flujo digital por medio es un neto de movimientos, no el saldo de una cuenta bancaria. La conciliación distingue cobros brutos, devoluciones, egresos y otros ingresos. Si un medio tuvo actividad, debe verificarse antes de cerrar. Si hay diferencias, se exige una observación y se conservan esperado y verificado.
 
 ## Alcance de la API
 
 `CajaService.cobrar` valida el importe que recibe del módulo comercial. Todavía no consulta una venta, su saldo, precio o reserva. La venta pagada y los abonos de separaciones deberán suministrarse mediante eventos vinculados a sus documentos y confirmarse junto con sus efectos de Stock en una transacción común.
 
-`TurnoMemoriaRepository` comprueba atomicidad y concurrencia dentro de un proceso. Sus datos y los identificadores usados se pierden al cerrar la aplicación. Todavía no hay repositorio PostgreSQL para Caja ni recuperación después de reiniciar. El efectivo recibido y el vuelto no forman parte del libro de movimientos: este guarda únicamente importes aplicados; su incorporación al recibo comercial queda pendiente.
+`TurnoMemoriaRepository` comprueba atomicidad y concurrencia dentro de un proceso. Sus datos y los identificadores usados se pierden al cerrar la aplicación. `TurnoPostgresRepository` persiste turnos, movimientos, líneas, verificaciones y cierres. Las solicitudes guardan la versión del resultado original para recuperar reintentos después de movimientos o cierres posteriores. El efectivo recibido y el vuelto no forman parte del libro de movimientos: este guarda únicamente importes aplicados; su incorporación al recibo comercial queda pendiente.
+
+`UnidadTrabajoPostgres` permite compartir una conexión entre repositorios: los commits internos se posponen hasta finalizar la operación externa y un rollback interno obliga a revertir toda la operación. Se comprobó un cobro y descuento de stock coordinados y su rollback conjunto. Todavía no existe el flujo comercial completo de documento, ítems y pago que debe utilizar esa unidad de trabajo.
 
 ## Pruebas y continuación
 
-Cinco pruebas específicas verifican el cuadre del plan, vuelto y fuentes externas, validación de importes, reintentos, rechazo de cierres obsoletos y apertura concurrente. La suite habitual ejecutó 37 pruebas exitosas y omitió las seis de integración PostgreSQL, al no habilitar esa base en esta ejecución.
+Seis pruebas específicas verifican el cuadre del plan, vuelto y fuentes externas, validación de importes, reintentos, cierres obsoletos, apertura concurrente y conciliación digital. La suite completa ejecutó 47 pruebas exitosas, incluidas nueve de integración PostgreSQL; no se omitieron pruebas en esa ejecución.
 
-Pendiente: persistencia y migración de Caja; documentos y numeración; ventas y abonos vinculados; conciliación digital; integración atómica con Stock y Compras; anulaciones y cambios aplicados al turno actual; reportes y respaldos. Las pantallas quedan para la última fase.
+Pendiente: documentos y numeración; ventas y abonos vinculados; conectar los flujos comerciales con la unidad de trabajo; anulaciones y cambios aplicados al turno actual; reportes y respaldos. Las pantallas quedan para la última fase. Las migraciones 4 y 5 agregan persistencia y conciliación de Caja y no modifican las versiones anteriores.

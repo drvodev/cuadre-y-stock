@@ -4,7 +4,7 @@ Aplicación Java para inventario y control interno de caja en Surquillo. Proyect
 
 ## Estado actual
 
-Stock y Catálogo disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Caja inicia con reglas de apertura, cobros, egresos y cierre, probadas en memoria. Todavía falta su persistencia y la integración con Stock y Compras. Los módulos aún no están terminados para uso con datos reales.
+Stock, Catálogo y Caja disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Caja conserva turnos, pagos, cierres y conciliación digital. Una unidad de trabajo permite coordinar repositorios de Stock y Caja; todavía falta el flujo comercial completo que la utiliza. Los módulos aún no están terminados para uso con datos reales.
 
 Stock incluye cantidades exactas, entradas, ajustes, descuentos sin negativos, reservas con confirmación de faltantes, ampliaciones, cancelación, despacho único, mínimos por almacén e historial. La autorización de pago de Caja todavía se simula en las pruebas.
 
@@ -14,7 +14,7 @@ Catálogo incluye artículos por SKU, unidades y presentaciones, costo opcional,
 
 Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
-La suite completa habilitada con PostgreSQL de prueba pasó 38 pruebas, seis de integración real. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
+La última suite completa habilitada con PostgreSQL de prueba pasó 47 pruebas, nueve de integración real. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
 
 ## Configuración y migraciones
 
@@ -27,6 +27,8 @@ La ventana principal sigue siendo provisional. StockView y ConfirmacionReservaVi
 - [Estado, decisiones, operación y pendientes](docs/ESTADO-Y-OPERACION.md).
 - [Pruebas y alcance de la revisión de seguridad](README-PRUEBAS-SEGURIDAD.md).
 - [Reglas, pruebas y pendientes de Caja](docs/CAJA.md).
+- [Responsabilidades y funciones por clase](docs/CLASES.md).
+- [Condiciones de aceptación de la beta completa](docs/BETA-ACEPTACION.md).
 - Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
 Falta la transacción compartida con Caja, la reconstrucción al corte histórico, respaldos y restauración, configuración de producción y partes del catálogo. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.

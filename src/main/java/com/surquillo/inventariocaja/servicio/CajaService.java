@@ -10,9 +10,6 @@ import java.util.*;
 
 /** Reglas de caja independientes de las pantallas y del origen comercial de los pagos. */
 public class CajaService {
-    private record Apertura(LocalDate fecha,String encargado,BigDecimal fondo) {}
-    private record Registro(MovimientoCaja.Tipo tipo,MovimientoCaja.Fuente fuente,Map<MedioPago,BigDecimal> importes,String referencia) {}
-    private record Confirmacion(long version,BigDecimal contado,String firma,String observacion) {}
     public record Cobro(TurnoRepository.Estado estado,BigDecimal vuelto) {}
     private final TurnoRepository repo;
     private final Clock reloj;
@@ -20,7 +17,7 @@ public class CajaService {
     public TurnoRepository.Estado abrir(UUID solicitud,UUID turno,String caja,LocalDate fecha,String encargado,BigDecimal fondo) {
         String cajaNormal=texto(caja,"Caja"), firma=texto(encargado,"Encargado");
         Objects.requireNonNull(fecha); BigDecimal inicial=importe(fondo,true);
-        var comando=new Apertura(fecha,firma,inicial);
+        var comando=huella("ABRIR",fecha,firma,inicial);
         return repo.aplicar(solicitud,comando,cajaNormal,turno,anterior->{
             if(anterior.isPresent()) throw new ValidacionException("El identificador del turno ya existe");
             return new TurnoRepository.Estado(new Turno(turno,cajaNormal,fecha,firma,inicial,0,false),List.of(),null);
@@ -47,12 +44,14 @@ public class CajaService {
             throw new ValidacionException("Los ingresos requieren una caja");
         if(tipo==MovimientoCaja.Tipo.RETIRO && (fuente!=MovimientoCaja.Fuente.CAJA || lineas.size()!=1 || !lineas.containsKey(MedioPago.EFECTIVO)))
             throw new ValidacionException("El retiro de fondos debe ser efectivo desde caja");
-        var comando=new Registro(tipo,fuente,lineas,ref);
+        var partes=new ArrayList<Object>(); partes.add("REGISTRAR"); partes.add(tipo); partes.add(fuente); partes.add(ref);
+        for(var medio:MedioPago.values()) if(lineas.containsKey(medio)) { partes.add(medio); partes.add(lineas.get(medio)); }
+        var comando=huella(partes.toArray());
         String caja=consultar(turno).turno().caja();
         return repo.aplicar(solicitud,comando,caja,turno,anterior->{
             var estado=abierto(anterior);
             var movimientos=new ArrayList<>(estado.movimientos());
-            movimientos.add(new MovimientoCaja(solicitud,reloj.instant(),tipo,fuente,lineas,ref));
+            movimientos.add(new MovimientoCaja(solicitud,reloj.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS),tipo,fuente,lineas,ref));
             return new TurnoRepository.Estado(version(estado.turno(),false),movimientos,null);
         });
     }
@@ -68,15 +67,43 @@ public class CajaService {
         return Map.copyOf(totales);
     }
     public TurnoRepository.Estado cerrar(UUID solicitud,UUID turno,long version,BigDecimal contado,String firma,String observacion) {
+        return cerrar(solicitud,turno,version,contado,firma,observacion,Map.of());
+    }
+    public Map<MedioPago,VerificacionMedio> resumenDigital(UUID turno) { return resumenDigital(consultar(turno)); }
+    private Map<MedioPago,VerificacionMedio> resumenDigital(TurnoRepository.Estado estado) {
+        Map<MedioPago,VerificacionMedio> resumen=new EnumMap<>(MedioPago.class);
+        for(var medio:MedioPago.values()) if(medio!=MedioPago.EFECTIVO) {
+            BigDecimal cobros=BigDecimal.ZERO,devoluciones=BigDecimal.ZERO,egresos=BigDecimal.ZERO,otros=BigDecimal.ZERO;
+            for(var m:estado.movimientos()) if(m.fuente()==MovimientoCaja.Fuente.CAJA) {
+                BigDecimal monto=m.importes().getOrDefault(medio,BigDecimal.ZERO);
+                switch(m.tipo()) { case COBRO->cobros=cobros.add(monto); case DEVOLUCION->devoluciones=devoluciones.add(monto); case OTRO_INGRESO->otros=otros.add(monto); default->egresos=egresos.add(monto); }
+            }
+            resumen.put(medio,new VerificacionMedio(cobros,devoluciones,egresos,otros));
+        }
+        return Map.copyOf(resumen);
+    }
+    public TurnoRepository.Estado cerrar(UUID solicitud,UUID turno,long version,BigDecimal contado,String firma,String observacion,Map<MedioPago,VerificacionMedio> verificaciones) {
         BigDecimal efectivo=importe(contado,true); String nombre=texto(firma,"Firma"); String nota=observacion==null?"":observacion.strip();
-        String caja=consultar(turno).turno().caja(); var comando=new Confirmacion(version,efectivo,nombre,nota);
+        var verificados=Map.copyOf(verificaciones);
+        if(verificados.containsKey(MedioPago.EFECTIVO)) throw new ValidacionException("El efectivo se verifica con el conteo");
+        var partes=new ArrayList<Object>(List.of("CERRAR",version,efectivo,nombre,nota));
+        for(var medio:MedioPago.values()) if(verificados.containsKey(medio)) { partes.add(medio); partes.add(verificados.get(medio)); }
+        String caja=consultar(turno).turno().caja(); var comando=huella(partes.toArray());
         return repo.aplicar(solicitud,comando,caja,turno,anterior->{
             var estado=abierto(anterior);
             if(estado.turno().version()!=version) throw new ValidacionException("La caja cambió después del conteo; vuelve a revisar el cuadre");
             var flujos=flujo(estado); BigDecimal esperado=estado.turno().fondoInicial().add(flujos.get(MedioPago.EFECTIVO));
             BigDecimal diferencia=efectivo.subtract(esperado);
             if(diferencia.signum()!=0 && nota.isBlank()) throw new ValidacionException("Explica la diferencia antes de cerrar");
-            var cierre=new Cierre(reloj.instant(),nombre,esperado,efectivo,diferencia,nota,flujos);
+            var digitales=new EnumMap<MedioPago,DetalleCierre>(MedioPago.class);
+            for(var entrada:resumenDigital(estado).entrySet()) {
+                var verificado=verificados.get(entrada.getKey());
+                if(verificado==null && !entrada.getValue().equals(VerificacionMedio.cero())) throw new ValidacionException("Verifica el medio "+entrada.getKey()+" antes del cierre");
+                var detalle=new DetalleCierre(entrada.getValue(),verificado==null?VerificacionMedio.cero():verificado);
+                if(detalle.tieneDiferencia() && nota.isBlank()) throw new ValidacionException("Explica las diferencias digitales antes de cerrar");
+                digitales.put(entrada.getKey(),detalle);
+            }
+            var cierre=new Cierre(reloj.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS),nombre,esperado,efectivo,diferencia,nota,flujos,digitales);
             return new TurnoRepository.Estado(version(estado.turno(),true),estado.movimientos(),cierre);
         });
     }
@@ -97,5 +124,10 @@ public class CajaService {
     }
     private String texto(String valor,String campo) {
         if(valor==null || valor.isBlank()) throw new ValidacionException(campo+" es obligatorio"); return valor.strip();
+    }
+    private String huella(Object... valores) {
+        var resultado=new StringBuilder();
+        for(Object valor:valores) { String s=valor.toString(); resultado.append(s.length()).append(':').append(s); }
+        return resultado.toString();
     }
 }

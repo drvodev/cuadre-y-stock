@@ -1,5 +1,5 @@
 package com.surquillo.inventariocaja.modelo.caja;
 
-/** Estructura inicial; pendiente de definir y validar. */
-public class DetalleCierre {
+public record DetalleCierre(VerificacionMedio esperado,VerificacionMedio verificado) {
+    public boolean tieneDiferencia() { return !esperado.equals(verificado); }
 }

@@ -2,7 +2,7 @@
 
 Documento actualizado el 10 de noviembre de 2026. Referencia funcional: beta 3.1 y decisiones posteriores del chat. Las pantallas quedan para la última fase.
 
-Caja ya tiene una primera implementación en memoria de apertura, cobros, egresos y cierre manual. Ver CAJA.md para su alcance y limitaciones; todavía no está conectada a Stock ni a PostgreSQL.
+Caja tiene apertura, cobros, egresos, cierre manual y conciliación digital con persistencia PostgreSQL. La unidad de trabajo compartida está probada con efectos coordinados de Stock y Caja; aún falta integrarla con documentos y ventas. Ver CAJA.md y BETA-ACEPTACION.md para el alcance completo.
 
 ## Implementado y comprobado
 
@@ -25,7 +25,7 @@ El administrador ejecuta explícitamente `MigracionesPostgres.aplicar` sobre un 
 
 `mvn test` ejecuta las pruebas habituales y omite la integración PostgreSQL si no se habilita. Para integración, configurar `STOCK_TEST_DB=true`, `STOCK_TEST_URL`, `STOCK_TEST_USER` y `STOCK_TEST_PASSWORD`, exclusivamente para una base desechable. La suite crea esquemas aleatorios con prefijo `prueba_` y elimina solo esos esquemas al terminar. La cuenta de prueba requiere permiso de creación de esquemas.
 
-La última ejecución completa terminó con 38 pruebas exitosas y ninguna omitida. Incluyó seis pruebas contra PostgreSQL 17: persistencia, reservas, concurrencia, rollback real, búsqueda, control de versiones, mínimos, auditoría y migraciones repetidas o alteradas. La cifra incluye una prueba local de 1.000 operaciones aleatorias reproducibles. No demuestra resistencia a cortes de energía ni rendimiento en grandes volúmenes.
+La última ejecución completa terminó con 47 pruebas exitosas y ninguna omitida. Incluyó nueve pruebas contra PostgreSQL 17: persistencia, reservas, concurrencia, rollback real, búsqueda, versiones, mínimos, auditoría, migraciones y coordinación de Caja/Stock. La cifra incluye una prueba de 1.000 operaciones aleatorias reproducibles. No demuestra resistencia a cortes de energía ni rendimiento en grandes volúmenes.
 
 ## Pendientes que impiden declarar el producto terminado
 
