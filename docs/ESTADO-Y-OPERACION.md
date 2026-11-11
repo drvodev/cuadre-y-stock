@@ -2,6 +2,8 @@
 
 Documento actualizado el 10 de noviembre de 2026. Referencia funcional: beta 3.1 y decisiones posteriores del chat. Las pantallas quedan para la última fase.
 
+Caja ya tiene una primera implementación en memoria de apertura, cobros, egresos y cierre manual. Ver CAJA.md para su alcance y limitaciones; todavía no está conectada a Stock ni a PostgreSQL.
+
 ## Implementado y comprobado
 
 - Stock físico, reservado y disponible por SKU y almacén; cantidades enteras o de hasta tres decimales.

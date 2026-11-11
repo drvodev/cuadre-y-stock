@@ -1,5 +1,9 @@
 # Pruebas de seguridad y resultados
 
+## Primera lógica de Caja
+
+Se añadieron cinco pruebas de Caja. La ejecución Maven posterior al cambio encontró 43 pruebas: 37 exitosas, cero fallos y seis de integración PostgreSQL omitidas al no habilitar la base de prueba. La lógica de Caja usa un repositorio en memoria; los resultados no acreditan persistencia, recuperación, integración comercial ni uso de dinero real. Ver docs/CAJA.md.
+
 ## Estado actual, 10 de noviembre de 2026
 
 La última suite Maven completa pasó 38 pruebas, con seis pruebas de integración en PostgreSQL 17 aislado. Se comprobaron transacciones de Stock, reservas, ventas concurrentes, rollback real, consultas parametrizadas, control de versiones de artículos, mínimos persistentes, historial de catálogo y migraciones repetidas o alteradas. Las pruebas anteriores detalladas más abajo conservan su alcance histórico; la indicación de que no se probó PostgreSQL corresponde a esas ejecuciones anteriores.
@@ -49,3 +53,11 @@ Las pruebas concurrentes usan únicamente el repositorio en memoria. La prueba d
 Se incorporó una prueba reproducible de 1.000 operaciones de entrada, venta y ajuste con cantidades válidas y negativas o cero. En cada paso contrasta el saldo con un cálculo independiente, verifica que no sea negativo y que las solicitudes rechazadas no agreguen movimientos. Al final comprueba que la suma de cambios y la continuidad del historial coincidan con el saldo.
 
 En la siguiente ejecución, modelos, controladores, servicios, repositorios, excepciones y pruebas se compilaron con JDK 25 y JUnit 6.0.3: **30 pruebas ejecutadas y 30 exitosas**. La prueba de invariantes usa almacenamiento en memoria y no cubre JavaFX, Maven, el comportamiento real de PostgreSQL ni los módulos que aún no están implementados.
+
+## Revisión posterior a las migraciones
+
+Tras la entrega `e1bed30`, se ejecutó el ciclo Maven del proyecto con las dependencias declaradas, usando la caché local: **32 pruebas pasaron y 6 de integración con PostgreSQL se omitieron**. Maven compiló también los componentes gráficos; no se verificó visualmente su funcionamiento. La suite ejecutada incluye las pruebas de SQL simulado, fallos, concurrencia en memoria y la secuencia de 1.000 operaciones.
+
+Se intentó preparar una instancia PostgreSQL aislada para repetir las seis pruebas de integración, pero la inicialización quedó sin terminar y se interrumpió; no quedó un servidor iniciado. Por ello esta revisión no las ejecutó de forma independiente. El agente que implementó el cambio informó de 38 pruebas exitosas, incluidas esas seis con PostgreSQL 17; ese resultado está descrito en `docs/ESTADO-Y-OPERACION.md`.
+
+La configuración de conexión acepta una URL JDBC sin exigir cifrado ni verificación del servidor. Antes de conectar equipos por red, definir y comprobar una configuración TLS con verificación del servidor y los permisos de la cuenta; las pruebas existentes no lo validan. La integración de Caja y pago con el despacho sigue pendiente, por lo que no debe interpretarse la autorización simulada como una garantía de pago real.

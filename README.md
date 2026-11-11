@@ -4,7 +4,7 @@ Aplicación Java para inventario y control interno de caja en Surquillo. Proyect
 
 ## Estado actual
 
-Stock y Catálogo disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Todavía no están terminados para uso con datos reales. Caja y Compras están pendientes de desarrollo e integración.
+Stock y Catálogo disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Caja inicia con reglas de apertura, cobros, egresos y cierre, probadas en memoria. Todavía falta su persistencia y la integración con Stock y Compras. Los módulos aún no están terminados para uso con datos reales.
 
 Stock incluye cantidades exactas, entradas, ajustes, descuentos sin negativos, reservas con confirmación de faltantes, ampliaciones, cancelación, despacho único, mínimos por almacén e historial. La autorización de pago de Caja todavía se simula en las pruebas.
 
@@ -26,6 +26,7 @@ La ventana principal sigue siendo provisional. StockView y ConfirmacionReservaVi
 
 - [Estado, decisiones, operación y pendientes](docs/ESTADO-Y-OPERACION.md).
 - [Pruebas y alcance de la revisión de seguridad](README-PRUEBAS-SEGURIDAD.md).
+- [Reglas, pruebas y pendientes de Caja](docs/CAJA.md).
 - Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
 Falta la transacción compartida con Caja, la reconstrucción al corte histórico, respaldos y restauración, configuración de producción y partes del catálogo. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.

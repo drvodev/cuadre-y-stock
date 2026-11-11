@@ -1,5 +1,10 @@
 package com.surquillo.inventariocaja.modelo.caja;
 
-/** Estructura inicial; pendiente de definir y validar. */
-public class Cierre {
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Map;
+public record Cierre(Instant fecha, String firma, BigDecimal efectivoEsperado,
+                     BigDecimal efectivoContado, BigDecimal diferencia, String observacion,
+                     Map<MedioPago,BigDecimal> flujoPorMedio) {
+    public Cierre { flujoPorMedio=Map.copyOf(flujoPorMedio); }
 }
