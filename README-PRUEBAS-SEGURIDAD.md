@@ -1,5 +1,13 @@
 # Pruebas de seguridad y resultados
 
+## Ampliación de Catálogo, 12 de noviembre de 2026
+
+La suite completa pasó 72 pruebas sin fallos ni omisiones, incluidas 24 con PostgreSQL 17 aislado. Se añadieron ocho escenarios de contrato ejecutados tanto en memoria como contra PostgreSQL, más actualización desde las primeras siete migraciones y edición concurrente de una opción. Se verificaron listas sin artículos, nombres duplicados, estados, versiones, auditoría, filtros combinados, características inmutables e históricas y paginación.
+
+Se comparó el SQL de las primeras siete migraciones con el jar de la beta 0.1.2: solo diferían los finales de línea. El verificador ahora admite LF/CRLF del mismo SQL; la regresión que altera el contenido continúa pasando. La actualización probada conserva artículos e historial anterior sin atributos y carga las listas existentes.
+
+La base de laboratorio es independiente y las credenciales se leen desde el entorno fuera del repositorio. La revisión visual y el nuevo tema se coordinan con el otro chat; estas pruebas no acreditan una pantalla ni un paquete nuevo.
+
 ## Controles de ventana, versión 0.1.2
 
 Se añadió BarraVentana, compartida por las pantallas de conexión y principal. Minimiza mediante el estado de la ventana, alterna maximización/restauración y solicita el cierre normal respetando el evento de cierre. El texto Maximizar/Restaurar está vinculado al estado real de la ventana. La suite Maven pasó 40 pruebas y omitió 14 integraciones; se generó el paquete Windows. Su apertura fue bloqueada por Control de aplicaciones de Windows, por lo que no se validaron visualmente estos botones. No se modificaron políticas de seguridad ni se presenta la compilación como una validación visual.

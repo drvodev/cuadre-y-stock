@@ -33,7 +33,7 @@ class ProductoPostgresSqlTest {
         assertTrue(new ProductoPostgresRepository(ds).buscar(carga,"",10,false).isEmpty());
         assertFalse(consultas.get(0).contains(carga));
         assertTrue(consultas.get(0).contains("ESCAPE '!'"));
-        assertEquals("%x!%' OR 1=1 --!_!!%",parametros.get(3));
-        assertEquals(10,parametros.get(4));
+        assertEquals("%x!%' OR 1=1 --!_!!%",parametros.get(4));
+        assertEquals(10,parametros.get(5));
     }
 }

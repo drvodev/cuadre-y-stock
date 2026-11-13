@@ -118,7 +118,7 @@ class PostgresIntegracionTest {
         catalogo.crear(v); catalogo.actualizar(v);
         assertEquals(2,catalogo.historial("SKU-H",0,10).size());
         assertEquals(1,catalogo.historial("SKU-H",catalogo.historial("SKU-H",0,1).get(0).secuencia(),10).size());
-        assertEquals(java.util.List.of("bolsa"),catalogo.opciones(ProductoRepository.Lista.UNIDAD,10));
+        assertEquals(java.util.List.of("bolsa"),catalogo.opciones(ListaCatalogo.UNIDAD,10));
         try(Connection c=ds.getConnection(); var s=c.createStatement()) {
             try(var r=s.executeQuery("SELECT count(*) FROM catalogo_historial WHERE sku='SKU-H'")) { r.next(); assertEquals(2,r.getInt(1)); }
             s.executeUpdate("UPDATE app_migracion SET hash='alterado' WHERE version=1");

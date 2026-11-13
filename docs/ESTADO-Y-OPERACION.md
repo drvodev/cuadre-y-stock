@@ -1,43 +1,37 @@
-# Estado de Stock y Catálogo
+# Estado y operación
 
-Documento actualizado el 10 de noviembre de 2026. Referencia funcional: beta 3.1 y decisiones posteriores del chat. Las pantallas quedan para la última fase.
+Actualización: 12 de noviembre de 2026. Referencia funcional: beta 3.1 y aclaraciones posteriores. Ver PLAN-ACTUAL.md para el orden vigente y CATALOGO.md para este bloque.
 
-Actualización del 11 de noviembre de 2026: se priorizó una beta con pantallas para pruebas personales. Ya conecta Catálogo, Stock, Caja, Nueva operación y Operaciones con un esquema PostgreSQL elegido en el arranque. La suite pasó 54 pruebas, 14 de integración. Se abrió el paquete y se revisaron visualmente carga DEMO, consulta, apertura y venta con vuelto. GUIA-PRUEBAS.md detalla evidencia, límites, instrucciones y resultados esperados; no se declara terminada la beta completa del plan.
+## Implementado
 
-Caja tiene apertura, cobros, egresos, cierre manual y conciliación digital con persistencia PostgreSQL. La unidad de trabajo compartida está probada con efectos coordinados de Stock y Caja; aún falta integrarla con documentos y ventas. Ver CAJA.md y BETA-ACEPTACION.md para el alcance completo.
+Stock conserva físico, reservado y disponible por SKU/almacén, entradas, ajustes justificados, mínimos y movimientos. Las reservas admiten confirmación de faltantes, ampliación, cancelación y despacho único.
 
-Actualización posterior: VentaService ya integra documentos, ítems históricos, venta completa, separaciones, abonos, entrega y anulación completa con Stock y Caja. Las pruebas comerciales están en PostgresIntegracionTest y el alcance en VENTAS.md. La suite más reciente pasó 53 pruebas, 13 de integración. El control de aceptación sigue pendiente del programa completo.
+VentaService ya coordina documentos, cobros, separaciones, abonos, entrega y anulación completa con Stock y Caja en una transacción. La autorización simulada se utiliza en pruebas aisladas de ReservaService; no describe la integración comercial completa. Ver VENTAS.md.
 
-## Implementado y comprobado
+Caja conserva turnos, movimientos, conteo, cierres y conciliación digital en PostgreSQL.
 
-- Stock físico, reservado y disponible por SKU y almacén; cantidades enteras o de hasta tres decimales.
-- Entradas, ajustes justificados, venta con límite cero e historial de cambios físicos.
-- Reservas por separación: propuesta con faltante, aceptación explícita, ampliación tras reposición, cancelación y despacho único. La autorización de pago se conecta mediante una interfaz; en las pruebas es simulada.
-- Reintentos identificados por UUID y transacciones de saldo, reserva y movimiento. La implementación PostgreSQL serializa las escrituras de Stock mediante un bloqueo del módulo; su rendimiento debe medirse antes de una expansión.
-- Mínimo persistente por SKU/almacén y comprobación de stock bajo.
-- Catálogo con SKU normalizado y único, descripción, categoría, marca, presentación, tipo, unidad, origen, contenido descriptivo, precio y costo opcionales.
-- Actualización por versión, desactivación, búsqueda paginada, consulta de listas existentes e historial de versiones. Las listas consultadas proceden de los artículos: aún no son maestros editables independientes.
-- Configuración PostgreSQL por entorno y migraciones transaccionales con comprobación del contenido aplicado.
+Catálogo incorpora ahora listas independientes, edición con versiones, filtros combinados, características descriptivas e historiales. La pantalla se presenta por descripción y categoría. Ver CATALOGO.md.
 
-## Configuración de PostgreSQL
+## PostgreSQL y migraciones
 
-`ConexionPostgres.desdeEntorno` lee `APP_DB_URL`, `APP_DB_USER` y `APP_DB_PASSWORD`. La contraseña debe configurarse fuera del repositorio. Usar una cuenta de aplicación con los permisos necesarios, distinta de la cuenta de administración.
+ConexionPostgres lee APP_DB_URL, APP_DB_USER y APP_DB_PASSWORD fuera del repositorio. PreparacionBeta permite elegir un esquema de pruebas y aplica migraciones durante la conexión. No borra ni adopta tablas antiguas manualmente creadas. El uso de una cuenta limitada y la instalación de producción siguen pendientes.
 
-El administrador ejecuta explícitamente `MigracionesPostgres.aplicar` sobre un esquema nuevo y una conexión con permiso para crear tablas, funciones y disparadores. La aplicación no ejecuta migraciones automáticamente. Las versiones aplicadas se registran en `app_migracion` y una modificación de su contenido provoca un error. Si ya se ejecutaron los archivos SQL manualmente, debe prepararse una migración de adopción específica; no borrar tablas ni intentar aplicar el esquema inicial sobre ellas.
+MigracionesPostgres aplica versiones en una transacción y verifica las registradas. Admite exclusivamente variantes LF/CRLF del mismo SQL. No modificar archivos SQL aplicados ni borrar datos para resolver una incompatibilidad.
 
 ## Pruebas
 
-`mvn test` ejecuta las pruebas habituales y omite la integración PostgreSQL si no se habilita. Para integración, configurar `STOCK_TEST_DB=true`, `STOCK_TEST_URL`, `STOCK_TEST_USER` y `STOCK_TEST_PASSWORD`, exclusivamente para una base desechable. La suite crea esquemas aleatorios con prefijo `prueba_` y elimina solo esos esquemas al terminar. La cuenta de prueba requiere permiso de creación de esquemas.
+mvn test omite la integración si STOCK_TEST_DB no está habilitado. Para una base exclusivamente desechable: STOCK_TEST_DB=true y STOCK_TEST_URL, STOCK_TEST_USER y STOCK_TEST_PASSWORD. Las credenciales se suministran por entorno, nunca en el repositorio.
 
-La última ejecución completa terminó con 47 pruebas exitosas y ninguna omitida. Incluyó nueve pruebas contra PostgreSQL 17: persistencia, reservas, concurrencia, rollback real, búsqueda, versiones, mínimos, auditoría, migraciones y coordinación de Caja/Stock. La cifra incluye una prueba de 1.000 operaciones aleatorias reproducibles. No demuestra resistencia a cortes de energía ni rendimiento en grandes volúmenes.
+Las pruebas crean y eliminan únicamente sus esquemas aleatorios prueba_. La cuenta del laboratorio requiere permiso para crearlos. La beta 0.1.2 fue entregada con 40 pruebas habituales y 14 integraciones omitidas en su revisión visual; antes hubo una ejecución completa de 54. La ampliación de Catálogo añade el contrato compartido y comprobaciones de actualización y concurrencia, cuyos resultados actuales se registran en README-PRUEBAS-SEGURIDAD.md.
 
-## Pendientes que impiden declarar el producto terminado
+## Pendientes
 
-1. Coordinar Caja, pago y despacho en una transacción compartida; completar compras y devoluciones vinculadas al documento original.
-2. Implementar reconstrucción de existencias y reservas al corte histórico para reportes. El historial actual de movimientos físicos no representa por sí solo todos los cambios de reserva.
-3. Completar catálogos maestros editables, atributos flexibles y filtros específicos; preparar precios por sede cuando se aborde la expansión.
-4. Implementar y probar respaldo y restauración con una política definida de destino y retención.
-5. Conectar la configuración a la aplicación, preparar instalación/migración de una base real y comprobar los permisos del usuario de aplicación.
-6. Medir consultas grandes, paginar el historial de Stock y revisar las pantallas al final.
+- Stock: consulta general y de mínimos/agotados, historial paginado y reconstrucción de existencias/reservas al corte acordado.
+- Compras documentadas con recepción y pago indivisibles.
+- Cambios y devoluciones parciales, conservando cierres anteriores.
+- Reportes .xls diarios/mensuales y procesos de respaldo/restauración por decidir.
+- Permisos de producción, actualización y recuperación comprobada en un equipo del negocio.
+- Integración y revisión visual de los cambios actuales con el agente responsable del diseño.
+- Medición de rendimiento antes de aumentar el volumen o los puestos de trabajo; precios por sede se reservan para expansión.
 
-Estos pendientes conservan el alcance del plan original. Stock y Catálogo tienen una base lógica y persistencia comprobadas, pero aún no se declaran completos para operar con datos reales.
+La matriz BETA-ACEPTACION.md exige comprobar el programa completo y conserva pendientes de aceptación aunque sus componentes tengan pruebas.

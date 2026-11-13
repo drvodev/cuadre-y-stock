@@ -8,9 +8,17 @@ import java.util.Locale;
 public record Variante(String sku, String descripcion, String categoria, String marca,
                        String presentacion, String tipo, String unidad, boolean permiteFraccion,
                        Origen origen, BigDecimal contenido, String unidadContenido,
-                       BigDecimal precioVenta, BigDecimal costo, boolean activo, long version) {
+                       BigDecimal precioVenta, BigDecimal costo, boolean activo, long version,
+                       java.util.Map<String,String> atributos) {
     public enum Origen { COMPRADO, FABRICADO }
+    public Variante(String sku,String descripcion,String categoria,String marca,String presentacion,String tipo,
+                    String unidad,boolean permiteFraccion,Origen origen,BigDecimal contenido,String unidadContenido,
+                    BigDecimal precioVenta,BigDecimal costo,boolean activo,long version) {
+        this(sku,descripcion,categoria,marca,presentacion,tipo,unidad,permiteFraccion,origen,contenido,
+             unidadContenido,precioVenta,costo,activo,version,java.util.Map.of());
+    }
     public Variante {
+        atributos=AtributosCatalogo.normalizar(atributos);
         sku = obligatorio(sku,"SKU").toUpperCase(Locale.ROOT);
         descripcion = obligatorio(descripcion,"Descripción");
         categoria = opcional(categoria); marca = opcional(marca);
@@ -34,6 +42,6 @@ public record Variante(String sku, String descripcion, String categoria, String 
     private static String opcional(String valor) { return valor == null ? "" : valor.strip(); }
     public Variante conVersion(long valor) {
         return new Variante(sku,descripcion,categoria,marca,presentacion,tipo,unidad,permiteFraccion,origen,
-                contenido,unidadContenido,precioVenta,costo,activo,valor);
+                contenido,unidadContenido,precioVenta,costo,activo,valor,atributos);
     }
 }

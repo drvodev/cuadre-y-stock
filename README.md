@@ -6,15 +6,17 @@ Aplicación Java para inventario y control interno de caja en Surquillo. Proyect
 
 Stock, Catálogo y Caja disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Caja conserva turnos, pagos, cierres y conciliación digital. VentaService coordina documentos, ventas, separaciones, abonos, entrega y anulación completa con Stock y Caja en una unidad de trabajo. Faltan otras funciones del plan y el programa aún no está terminado para uso con datos reales.
 
-Stock incluye cantidades exactas, entradas, ajustes, descuentos sin negativos, reservas con confirmación de faltantes, ampliaciones, cancelación, despacho único, mínimos por almacén e historial. La autorización de pago de Caja todavía se simula en las pruebas.
+Stock incluye cantidades exactas, entradas, ajustes, descuentos sin negativos, reservas con confirmación de faltantes, ampliaciones, cancelación, despacho único, mínimos por almacén e historial. VentaService coordina pago y despacho; las pruebas aisladas de ReservaService también utilizan una autorización simulada.
 
-Catálogo incluye artículos por SKU, unidades y presentaciones, costo opcional, búsqueda paginada, desactivación, control de versiones e historial. Las listas de marcas, categorías, unidades y presentaciones consultan los valores existentes en los artículos; su administración independiente está pendiente. Una caja con metraje descriptivo descuenta una caja; no hay conversión automática a metros cuadrados.
+Catálogo incluye artículos por SKU, unidades y presentaciones, costo opcional, búsqueda paginada, desactivación, control de versiones e historial. Ahora permite administrar categorías, marcas, unidades y presentaciones sin crear artículos, combinar filtros y guardar características descriptivas con historial. Una caja con metraje descriptivo descuenta una caja; no hay conversión automática a metros cuadrados. Renombrar una opción de lista no reasigna artículos ni modifica documentos históricos.
+
+El desarrollo continúa después de la beta 0.1.2. El catálogo presenta una lista de Descripción por categoría y edición manual. Las características admiten color, medida o modelo; las imágenes quedan para después. Ver [Catálogo y sus reglas](docs/CATALOGO.md) y [orden de trabajo vigente](docs/PLAN-ACTUAL.md). La revisión gráfica se coordina con el agente de visuales; no se ha publicado un nuevo ejecutable con esta ampliación.
 
 ## Abrir y probar
 
 Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
-La última suite completa habilitada con PostgreSQL de prueba pasó 54 pruebas, 14 de integración real. Para el cambio visual 0.1.1 pasaron 40 pruebas y se omitieron las 14 de integración. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
+La última suite completa del Catálogo ampliado pasó 72 pruebas, 24 de integración real. Después del ajuste de agrupación visual se recompiló y pasaron las nueve comprobaciones seleccionadas de Catálogo en memoria y SQL parametrizado. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
 
 ## Configuración y migraciones
 
@@ -31,6 +33,8 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 ## Documentación
 
 - [Estado, decisiones, operación y pendientes](docs/ESTADO-Y-OPERACION.md).
+- [Catálogo: listas, filtros, características y actualización](docs/CATALOGO.md).
+- [Orden de trabajo acordado](docs/PLAN-ACTUAL.md).
 - [Pruebas y alcance de la revisión de seguridad](README-PRUEBAS-SEGURIDAD.md).
 - [Reglas, pruebas y pendientes de Caja](docs/CAJA.md).
 - [Integración de ventas, separaciones y anulaciones completas](docs/VENTAS.md).
