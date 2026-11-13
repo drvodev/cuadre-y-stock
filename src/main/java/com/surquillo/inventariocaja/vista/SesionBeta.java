@@ -15,6 +15,7 @@ public class SesionBeta {
     public final CajaService caja;
     public final VentaService ventas;
     public final CompraService compras;
+    public final CorreccionVentaService correcciones;
     public final TurnoPostgresRepository turnos;
     public final StockController stock;
     public final ObjectProperty<UUID> turno=new SimpleObjectProperty<>();
@@ -22,6 +23,7 @@ public class SesionBeta {
     public SesionBeta(DataSource ds) {
         this.ds=ds; catalogo=new CatalogoService(new ProductoPostgresRepository(ds)); inventario=new InventarioService(new StockPostgresRepository(ds),reloj);
         compras=new CompraService(ds,reloj);
+        correcciones=new CorreccionVentaService(ds,reloj);
         turnos=new TurnoPostgresRepository(ds); caja=new CajaService(turnos,reloj); ventas=new VentaService(ds,reloj); stock=new StockController(catalogo,inventario);
         turnos.abierto("Surquillo").ifPresent(e->turno.set(e.turno().id()));
     }

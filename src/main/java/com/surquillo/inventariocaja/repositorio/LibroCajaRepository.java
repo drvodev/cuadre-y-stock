@@ -15,15 +15,19 @@ public final class LibroCajaRepository {
     public Map<UUID, Documento> documentos(UUID turno) {
         String sql = """
                 SELECT m.id, o.id, o.tipo, o.numero, o.modalidad, g.importe,
-                       string_agg(trim_scale(i.cantidad)::text || ' ' || i.unidad || ' · ' || i.descripcion,
-                                  chr(10) ORDER BY i.posicion) AS items
+                       CASE WHEN x.tipo='DEVOLUCION' THEN
+                           (SELECT string_agg(trim_scale(d.cantidad)::text || ' ' || vi.unidad || ' · ' || vi.descripcion,chr(10) ORDER BY d.posicion)
+                            FROM venta_correccion_item d JOIN venta_item vi ON vi.operacion=x.original AND vi.posicion=d.posicion WHERE d.correccion=x.id)
+                       ELSE string_agg(trim_scale(i.cantidad)::text || ' ' || i.unidad || ' · ' || i.descripcion,
+                                  chr(10) ORDER BY i.posicion) END AS items
                 FROM caja_movimiento m
                 JOIN venta_solicitud s ON s.id = m.id
                 JOIN venta_operacion o ON o.id = s.operacion
                 JOIN venta_item i ON i.operacion = o.id
                 LEFT JOIN venta_ganancia g ON g.operacion = o.id
+                LEFT JOIN venta_correccion x ON x.solicitud=m.id
                 WHERE m.turno = ?
-                GROUP BY m.id, o.id, g.importe
+                GROUP BY m.id, o.id, g.importe, x.id
                 """;
         try (var c = ds.getConnection(); var p = c.prepareStatement(sql)) {
             p.setObject(1, turno);

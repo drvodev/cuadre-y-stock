@@ -152,6 +152,9 @@ public class VentaService {
             var previo=reintento(solicitud,firma); if(previo.isPresent()) return previo.get();
             var op=consultar(operacion);
             if(op.estado()==Operacion.Estado.ANULADA||op.estado()==Operacion.Estado.CAMBIADA) throw new ValidacionException("La operación ya fue anulada o cambiada");
+            try(var c=unidad.getConnection();var p=c.prepareStatement("SELECT 1 FROM venta_correccion WHERE original=? LIMIT 1")){
+                p.setObject(1,operacion);try(var filas=p.executeQuery()){if(filas.next())throw new ValidacionException("La operación ya tiene notas. Usa Devoluciones y cambios para las cantidades restantes");}
+            }
             if(posiciones.stream().anyMatch(i->i<0||i>=op.items().size())) throw new ValidacionException("Ítem de devolución inválido");
             BigDecimal monto=suma(pagos);
             if(monto.compareTo(op.abonado())!=0) throw new ValidacionException("La anulación completa requiere devolver el total abonado");

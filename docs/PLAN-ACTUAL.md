@@ -1,11 +1,13 @@
 # Orden de trabajo acordado
 
-Actualización: 12 de noviembre de 2026.
+Actualización: 13 de noviembre de 2026.
 
 1. Catálogo: listas independientes, atributos descriptivos, filtros combinados y controles funcionales; conservar pruebas y documentación.
 2. Stock: listado general simple, precio/costo manual desde el artículo, disponibilidad, mínimos/agotados y movimientos paginados. La reconstrucción histórica se coordina con la decisión sobre reportes.
 3. Compras: documento, recepción y pago coordinados, sin duplicar entrada ni egreso.
-4. Cambios y devoluciones: al final, después de compras.
+4. Cambios y devoluciones: implementados después de compras, con nota e importe reconocido manual acordado; por ejemplo 100 originales y 90 reintegrados.
+
+Los cuatro bloques tienen lógica y pruebas PostgreSQL. Catálogo, Stock, Compras y Correcciones disponen de pantallas integradas y se revisó su presentación con datos ficticios. La aceptación del ciclo real del usuario continúa pendiente; no equivale a esas pruebas.
 
 Reportes y recuperación se revisan al cerrar el primer bloque de Catálogo. El usuario decidió el 12 de noviembre: copias solo manuales y carpeta elegida por él. No se asume retención ni restauración automática; su procedimiento y los reportes se decidirán antes de implementarlos.
 

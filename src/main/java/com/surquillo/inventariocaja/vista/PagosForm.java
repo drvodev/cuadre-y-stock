@@ -8,12 +8,13 @@ import java.util.*;
 
 public class PagosForm extends GridPane {
     private final Map<MedioPago,TextField> campos=new EnumMap<>(MedioPago.class);
-    private final TextField recibido=Ui.campo("Si queda vacío, igual al efectivo aplicado");
+    private final TextField recibido=Ui.campo("Vacío = pago efectivo");
+    private final Label etiquetaRecibido=new Label("Efectivo recibido");
     public PagosForm() { this(true); }
     public PagosForm(boolean incluirRecibido) {
         setHgap(10); setVgap(8); int fila=0;
         for(var medio:MedioPago.values()) { var t=Ui.campo("0,00"); campos.put(medio,t); addRow(fila++,new Label(medio.name()),t); }
-        if (incluirRecibido) addRow(fila,new Label("Efectivo recibido"),recibido);
+        if (incluirRecibido) addRow(fila,etiquetaRecibido,recibido);
     }
     public Map<MedioPago,BigDecimal> valores() {
         Map<MedioPago,BigDecimal> valores=new EnumMap<>(MedioPago.class);
@@ -22,4 +23,9 @@ public class PagosForm extends GridPane {
     }
     public BigDecimal recibido() { return recibido.getText().isBlank()?valores().getOrDefault(MedioPago.EFECTIVO,BigDecimal.ZERO):Ui.numero(recibido.getText()); }
     public void limpiar() { campos.values().forEach(TextField::clear); recibido.clear(); }
+    public javafx.beans.property.ReadOnlyStringProperty efectivoTextoProperty(){return campos.get(MedioPago.EFECTIVO).textProperty();}
+    public void mostrarRecibido(boolean mostrar){
+        etiquetaRecibido.setVisible(mostrar);etiquetaRecibido.setManaged(mostrar);
+        recibido.setVisible(mostrar);recibido.setManaged(mostrar);
+    }
 }

@@ -1,6 +1,6 @@
 # Estado y operación
 
-Actualización: 12 de noviembre de 2026. Referencia funcional: beta 3.1 y aclaraciones posteriores. Ver PLAN-ACTUAL.md para el orden vigente y CATALOGO.md para este bloque.
+Actualización: 13 de noviembre de 2026. Referencia funcional: beta 3.1 y aclaraciones posteriores. Ver PLAN-ACTUAL.md para el orden vigente.
 
 ## Implementado
 
@@ -16,6 +16,8 @@ La integración visual del otro chat añade un libro de cuatro columnas y gananc
 
 Catálogo incorpora ahora listas independientes, edición con versiones, filtros combinados, características descriptivas e historiales. La pantalla se presenta por descripción y categoría. Ver CATALOGO.md.
 
+Devoluciones y cambios registra notas con importes manuales, incluidos 90 reintegrados sobre 100 originales, cantidades parciales y reingreso separado. Los cambios guardan reemplazos vinculados y solo mueven la diferencia real. Se conserva el cierre original. Ver DEVOLUCIONES-Y-CAMBIOS.md.
+
 ## PostgreSQL y migraciones
 
 ConexionPostgres lee APP_DB_URL, APP_DB_USER y APP_DB_PASSWORD fuera del repositorio. PreparacionBeta permite elegir un esquema de pruebas y aplica migraciones durante la conexión. No borra ni adopta tablas antiguas manualmente creadas. El uso de una cuenta limitada y la instalación de producción siguen pendientes.
@@ -30,7 +32,6 @@ Las pruebas crean y eliminan únicamente sus esquemas aleatorios prueba_. La cue
 
 ## Pendientes
 
-- Cambios y devoluciones parciales, conservando cierres anteriores.
 - Reportes .xls diarios/mensuales y proceso de restauración por decidir. Copias solo manuales, en carpeta elegida por el usuario.
 - Permisos de producción, actualización y recuperación comprobada en un equipo del negocio.
 - Integración y revisión visual de los cambios actuales con el agente responsable del diseño.

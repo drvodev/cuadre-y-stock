@@ -1,5 +1,15 @@
 # Pruebas de seguridad y resultados
 
+## Devoluciones y cambios, 13 de noviembre de 2026
+
+La suite completa pasó 101 pruebas sin fallos ni omisiones, incluidas 49 con PostgreSQL 17 aislado. Las trece pruebas nuevas cubren 100 de valor original con 90 reintegrados, notas e importes no devueltos, reintentos tras cierre, cantidades parciales, producto no vendible, cambios con diferencia positiva/negativa/cero, rollback SQL tardío, duplicados, concurrencia, reparto de céntimos, cambio parcial y separación entregada.
+
+Se comprobó que la anulación completa anterior no permite duplicar una devolución ya anotada y que el turno y cierre originales se conservan. Los reemplazos quedan vinculados con crédito reconocido y solo se registra el flujo real de la diferencia. No se inventa ganancia a partir del importe no devuelto.
+
+El agente del chat de visuales revisó la presentación de CorreccionesView a 1200×790 con datos ficticios. Tras sus observaciones se acortó la pista de efectivo recibido y se oculta ese campo salvo al cobrar un adicional en efectivo. El agente verificó que aparece y desaparece al escribir o limpiar ese importe, y que Nota de venta, 100 originales, 90 reconocidos y 10 no devueltos son legibles. Es una revisión de presentación, no una aceptación manual completa de todos los recorridos.
+
+Reportes y recuperación permanecen fuera de este bloque; las copias acordadas serán solo manuales y en carpeta elegida por el usuario. La beta pública 0.1.2 permanece sin sustitución.
+
 ## Integración de Stock, Compras y visuales, 12 de noviembre de 2026
 
 La suite completa pasó 88 pruebas, 36 con PostgreSQL 17 aislado, sin errores ni omisiones. Además del bloque de Catálogo, se comprobaron cortes históricos de físico/reservado, paginación de movimientos, mínimos y agotados, edición de precios conservando atributos y ganancia manual sin alterar el cierre. Compras añade tres pruebas de modelo y ocho reales: documento/recepción/pago atómicos, pagos externos, costos desconocidos, duplicados, reintentos tras cierre, concurrencia y rollback de fallos tardíos.

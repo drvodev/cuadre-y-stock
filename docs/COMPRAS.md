@@ -52,4 +52,4 @@ La pantalla conserva los identificadores del formulario tras un error. Tras cerr
 
 Tres pruebas de modelo y ocho contra PostgreSQL verifican costo desconocido, redondeo, cantidades inválidas, recepción/pago, pago externo, documento duplicado, línea libre, inicialización, errores tardíos, concurrencia, pagos mixtos, paginación y recuperación de reintentos tras cerrar.
 
-Las compras confirmadas no se editan ni anulan desde esta pantalla. Cambios y devoluciones se abordan al final del orden acordado; no se ocultan ni corrigen movimientos históricos. El diseño final y la aceptación operativa de la nueva pestaña siguen sujetos a la revisión visual conjunta.
+Las compras confirmadas no se editan ni anulan desde esta pantalla. Las devoluciones y cambios de ventas ya tienen su módulo separado; ver DEVOLUCIONES-Y-CAMBIOS.md. No se ocultan ni corrigen movimientos históricos. La aceptación operativa del usuario sigue pendiente.

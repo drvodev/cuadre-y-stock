@@ -15,7 +15,7 @@ public class Aplicacion extends Application {
     private Stage escenario;
     @Override
     public void start(Stage escenario) {
-        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta visual 0.1.3");
+        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta en desarrollo 0.1.4");
         var host=Ui.campo("127.0.0.1");host.setText("127.0.0.1");var puerto=Ui.campo("5432");puerto.setText("5432");var base=Ui.campo("postgres");base.setText("postgres");var usuario=Ui.campo("postgres");usuario.setText("postgres");var clave=new PasswordField();var esquema=Ui.campo("cuadre_pruebas");esquema.setText("cuadre_pruebas");var estado=new Label("La contraseña se usa solo en esta sesión. No la escribas en el chat.");
         var conectar=new Button("Conectar e iniciar pruebas");
         conectar.setOnAction(e->{
@@ -50,7 +50,8 @@ public class Aplicacion extends Application {
         var existencias = new ListaStockView(sesion);
         var stock = new Tab("Stock", existencias.crear());
         var productos = new Tab("Catálogo", catalogo.crear());
-        tabs.getTabs().addAll(cierre, stock, productos, nueva, new Tab("Compras",new CompraView(sesion).crear()), historial);
+        tabs.getTabs().addAll(cierre, stock, productos, nueva, new Tab("Compras",new CompraView(sesion).crear()),
+            new Tab("Devoluciones y cambios",new CorreccionesView(sesion).crear()), historial);
         tabs.getSelectionModel().selectedItemProperty().addListener((o, anterior, actual) -> Ui.accion(() -> {
             if (actual == historial) operaciones.refrescar();
             if (actual == cierre) caja.cargarTurnos();
@@ -61,7 +62,7 @@ public class Aplicacion extends Application {
         demo.setOnAction(event -> Ui.accion(()->{if(!Ui.confirmar("¿Añadir artículos DEMO y sus existencias iniciales? No se sobrescribirán los artículos existentes."))return;try{new DatosDemostracionService(sesion.ds,sesion.reloj).cargar();catalogo.refrescar();Ui.informar("Datos DEMO listos. Almacén: Surquillo.");}catch(Exception e){throw new IllegalArgumentException("No se pudo cargar la demostración");}}));
 
         var ayuda = new MenuItem("Funciones pendientes");
-        ayuda.setOnAction(e -> Ui.informar("Esta versión permite probar catálogo, stock, compras, ventas, separaciones y cierre. Cambios y devoluciones parciales, reportes Excel y respaldos siguen en desarrollo."));
+        ayuda.setOnAction(e -> Ui.informar("Esta versión permite probar catálogo, stock, compras, ventas, separaciones, devoluciones, cambios y cierre. Reportes Excel y respaldos manuales siguen pendientes de implementación."));
         var opciones = new MenuButton("Pruebas", null, demo, ayuda);
         var entorno = new Label("Esquema de pruebas · " + esquema);
         entorno.getStyleClass().add("muted");
