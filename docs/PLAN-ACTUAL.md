@@ -9,7 +9,7 @@ Actualización: 13 de noviembre de 2026.
 
 Los cuatro bloques tienen lógica y pruebas PostgreSQL. Catálogo, Stock, Compras y Correcciones disponen de pantallas integradas y se revisó su presentación con datos ficticios. La aceptación del ciclo real del usuario continúa pendiente; no equivale a esas pruebas.
 
-Reportes y recuperación se revisan al cerrar el primer bloque de Catálogo. El usuario decidió el 12 de noviembre: copias solo manuales y carpeta elegida por él. No se asume retención ni restauración automática; su procedimiento y los reportes se decidirán antes de implementarlos.
+El usuario eligió copias solo manuales, con carpeta elegida por él, y recuperación en una base diferente y vacía. Ambas funciones se implementaron; ver RESPALDOS.md. No hay retención automática. El proceso de reportes se decidirá por separado.
 
 El otro chat trabaja el tema, navegación y visual de cuadre. Se coordinan contratos de datos y migraciones para integrar y probar juntos. La beta 0.1.2 publicada se mantiene como referencia; no sustituirla durante el desarrollo ni marcar pendientes como terminados por tener solamente clases vacías.
 

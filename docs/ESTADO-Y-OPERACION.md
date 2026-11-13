@@ -32,7 +32,7 @@ Las pruebas crean y eliminan únicamente sus esquemas aleatorios prueba_. La cue
 
 ## Pendientes
 
-- Reportes .xls diarios/mensuales y proceso de restauración por decidir. Copias solo manuales, en carpeta elegida por el usuario.
+- Reportes .xls diarios/mensuales. Las copias manuales y recuperación en base distinta y vacía están implementadas; ver RESPALDOS.md.
 - Permisos de producción, actualización y recuperación comprobada en un equipo del negocio.
 - Integración y revisión visual de los cambios actuales con el agente responsable del diseño.
 - Medición de rendimiento antes de aumentar el volumen o los puestos de trabajo; precios por sede se reservan para expansión.

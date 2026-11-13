@@ -1,5 +1,11 @@
 # Pruebas de seguridad y resultados
 
+## Respaldos manuales y recuperación, 13 de noviembre de 2026
+
+La suite completa ejecutó 102 pruebas sin fallos ni omisiones, incluidas 50 con PostgreSQL aislado. Después se amplió y repitió la prueba de respaldo: recupera Catálogo, Stock físico y reservado, una reserva, una venta y un cierre en otra base temporal; comprueba migraciones y rechaza origen, destino ocupado, plantilla, archivo corrupto y servidor remoto.
+
+La prueba usa PostgreSQL local y datos ficticios. La copia contiene datos sin cifrar y solo debe restaurarse desde un archivo de confianza. La revisión visual del nuevo formulario y los permisos de producción permanecen pendientes.
+
 ## Devoluciones y cambios, 13 de noviembre de 2026
 
 La suite completa pasó 101 pruebas sin fallos ni omisiones, incluidas 49 con PostgreSQL 17 aislado. Las trece pruebas nuevas cubren 100 de valor original con 90 reintegrados, notas e importes no devueltos, reintentos tras cierre, cantidades parciales, producto no vendible, cambios con diferencia positiva/negativa/cero, rollback SQL tardío, duplicados, concurrencia, reparto de céntimos, cambio parcial y separación entregada.

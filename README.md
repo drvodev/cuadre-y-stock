@@ -16,7 +16,7 @@ El desarrollo continúa después de la beta 0.1.2. Catálogo presenta una lista 
 
 Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
-La última suite completa pasó 101 pruebas, 49 de integración real con PostgreSQL. Incluye Catálogo, Stock, Compras, devoluciones, cambios, ventas y las regresiones de Caja. Se revisó la presentación de las pantallas con datos ficticios a 1200×790, incluido el formulario de correcciones. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
+La última suite completa pasó 102 pruebas, 50 de integración real con PostgreSQL. Incluye Catálogo, Stock, Compras, devoluciones, cambios, Caja y respaldo/recuperación. Después se amplió y repitió la prueba de recuperación con venta, reserva, cierre y validación de migraciones. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Para la prueba de copia, configurar también STOCK_TEST_PGBIN con la carpeta de herramientas PostgreSQL. Ver docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas y una base temporal desechables.
 
 ## Configuración y migraciones
 
@@ -37,6 +37,7 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 - [Stock: consultas, mínimos, movimientos y corte histórico](docs/STOCK-CONSULTAS.md).
 - [Compras: recepción, documento y pago coordinados](docs/COMPRAS.md).
 - [Notas de devolución y cambios con importe manual](docs/DEVOLUCIONES-Y-CAMBIOS.md).
+- [Copias manuales y recuperación en base vacía](docs/RESPALDOS.md).
 - [Orden de trabajo acordado](docs/PLAN-ACTUAL.md).
 - [Pruebas y alcance de la revisión de seguridad](README-PRUEBAS-SEGURIDAD.md).
 - [Reglas, pruebas y pendientes de Caja](docs/CAJA.md).
@@ -46,4 +47,4 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 - [Abrir la beta de pruebas y recorrido con resultados esperados](docs/GUIA-PRUEBAS.md).
 - Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
-Faltan reportes .xls, respaldo y restauración manual, configuración de producción y la aceptación operativa de las pantallas actuales. La consulta histórica de Stock ya existe; la reconstrucción comercial requerida por los reportes se decidirá con su proceso. El paquete 0.1.2 sigue disponible como referencia y no debe abrir un esquema actualizado con migraciones posteriores a las que soporta. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.
+Se implementaron copias manuales y recuperación en una base distinta y vacía; ver RESPALDOS.md. Faltan reportes .xls, configuración de producción y la aceptación operativa de las pantallas actuales. El paquete 0.1.2 sigue disponible como referencia y no incluye estas mejoras.

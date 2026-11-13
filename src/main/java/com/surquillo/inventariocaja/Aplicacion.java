@@ -36,11 +36,11 @@ public class Aplicacion extends Application {
     private void conectar(String url,String usuario,String clave,String esquema,Button boton,Label estado){
         boton.setDisable(true);estado.setText("Conectando y verificando las tablas…");
         Task<javax.sql.DataSource> tarea=new Task<>() {protected javax.sql.DataSource call() throws Exception{return PreparacionBeta.preparar(url,usuario,clave,esquema);}};
-        tarea.setOnSucceeded(e->{try{principal(new SesionBeta(tarea.getValue()),esquema);}catch(Exception error){boton.setDisable(false);estado.setText("No se pudo abrir la sesión.");Ui.accion(()->{throw new IllegalArgumentException(error.getMessage());});}});
+        tarea.setOnSucceeded(e->{try{principal(new SesionBeta(tarea.getValue()),esquema,url,usuario,clave);}catch(Exception error){boton.setDisable(false);estado.setText("No se pudo abrir la sesión.");Ui.accion(()->{throw new IllegalArgumentException(error.getMessage());});}});
         tarea.setOnFailed(e->{boton.setDisable(false);estado.setText("No se pudo conectar. Revisa usuario, contraseña, puerto y esquema. No se guardó la contraseña.");Ui.informar("No se pudo preparar la base de pruebas. Revisa la conexión y que el usuario pueda crear un esquema nuevo. Si el esquema tenía tablas antiguas, usa otro nombre.");});
         var hilo=new Thread(tarea,"conexion-beta");hilo.setDaemon(true);hilo.start();
     }
-    private void principal(SesionBeta sesion,String esquema){
+    private void principal(SesionBeta sesion,String esquema,String url,String usuario,String clave){
         var tabs=new TabPane();tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         var catalogo=new CatalogoView(sesion);var caja=new CajaView(sesion);var operaciones=new OperacionesView(sesion);
         var nueva = new Tab("Nueva operación", new VentaView(sesion).crear());
@@ -51,7 +51,8 @@ public class Aplicacion extends Application {
         var stock = new Tab("Stock", existencias.crear());
         var productos = new Tab("Catálogo", catalogo.crear());
         tabs.getTabs().addAll(cierre, stock, productos, nueva, new Tab("Compras",new CompraView(sesion).crear()),
-            new Tab("Devoluciones y cambios",new CorreccionesView(sesion).crear()), historial);
+            new Tab("Devoluciones y cambios",new CorreccionesView(sesion).crear()), historial,
+            new Tab("Respaldos",new RespaldoView(url,usuario,clave,esquema).crear()));
         tabs.getSelectionModel().selectedItemProperty().addListener((o, anterior, actual) -> Ui.accion(() -> {
             if (actual == historial) operaciones.refrescar();
             if (actual == cierre) caja.cargarTurnos();
@@ -62,7 +63,7 @@ public class Aplicacion extends Application {
         demo.setOnAction(event -> Ui.accion(()->{if(!Ui.confirmar("¿Añadir artículos DEMO y sus existencias iniciales? No se sobrescribirán los artículos existentes."))return;try{new DatosDemostracionService(sesion.ds,sesion.reloj).cargar();catalogo.refrescar();Ui.informar("Datos DEMO listos. Almacén: Surquillo.");}catch(Exception e){throw new IllegalArgumentException("No se pudo cargar la demostración");}}));
 
         var ayuda = new MenuItem("Funciones pendientes");
-        ayuda.setOnAction(e -> Ui.informar("Esta versión permite probar catálogo, stock, compras, ventas, separaciones, devoluciones, cambios y cierre. Reportes Excel y respaldos manuales siguen pendientes de implementación."));
+        ayuda.setOnAction(e -> Ui.informar("Esta versión permite probar catálogo, stock, compras, ventas, separaciones, devoluciones, cambios, cierre y respaldos manuales. Reportes Excel siguen pendientes."));
         var opciones = new MenuButton("Pruebas", null, demo, ayuda);
         var entorno = new Label("Esquema de pruebas · " + esquema);
         entorno.getStyleClass().add("muted");
