@@ -17,4 +17,4 @@
 
 Las pruebas PostgreSQL cubren venta completa con línea libre y stock cero, rechazo de venta incompleta, reintentos, documentos duplicados, correlativos, confirmación de faltante, abonos, reposición, entrega única y anulación en un turno posterior sin alterar el cierre anterior.
 
-Pendiente: cambio de producto con liquidación de diferencia, compras y gastos documentados, consulta paginada comercial y reportes al corte histórico. Las pantallas y el paquete de pruebas ya existen; la configuración de producción y la aceptación del programa completo siguen pendientes. Este módulo todavía no sustituye una aplicación terminada.
+Pendiente: cambio de producto con liquidación de diferencia, devoluciones parciales, gastos documentados, consulta paginada comercial y reportes al corte histórico. Las compras documentadas se implementan en CompraService; ver COMPRAS.md. Las pantallas y el paquete de pruebas ya existen; la configuración de producción y la aceptación del programa completo siguen pendientes.

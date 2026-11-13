@@ -15,7 +15,7 @@ public class Aplicacion extends Application {
     private Stage escenario;
     @Override
     public void start(Stage escenario) {
-        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta de pruebas 0.1.2");
+        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta visual 0.1.3");
         var host=Ui.campo("127.0.0.1");host.setText("127.0.0.1");var puerto=Ui.campo("5432");puerto.setText("5432");var base=Ui.campo("postgres");base.setText("postgres");var usuario=Ui.campo("postgres");usuario.setText("postgres");var clave=new PasswordField();var esquema=Ui.campo("cuadre_pruebas");esquema.setText("cuadre_pruebas");var estado=new Label("La contraseña se usa solo en esta sesión. No la escribas en el chat.");
         var conectar=new Button("Conectar e iniciar pruebas");
         conectar.setOnAction(e->{
@@ -23,7 +23,13 @@ public class Aplicacion extends Application {
             conectar("jdbc:postgresql://"+host.getText()+":"+puerto.getText()+"/"+base.getText(),usuario.getText(),clave.getText(),esquema.getText(),conectar,estado);
         });
         var form=new GridPane();form.setHgap(12);form.setVgap(12);form.addRow(0,new Label("Servidor"),host,new Label("Puerto"),puerto);form.addRow(1,new Label("Base de datos"),base,new Label("Usuario PostgreSQL"),usuario);form.addRow(2,new Label("Contraseña"),clave);form.addRow(3,new Label("Esquema de tus pruebas"),esquema);
-        escena(Ui.panel(new Label("Cuadre y Stock"),new Label("Beta de pruebas · Surquillo"),new Label("Usa datos de demostración. Se creará el esquema elegido sin borrar otras tablas."),form,conectar,estado));
+        conectar.getStyleClass().add("primary-action");
+        var titulo = new Label("Conectar a la tienda");
+        titulo.getStyleClass().add("page-title");
+        var panel = Ui.panel(titulo, new Label("Beta de pruebas · Surquillo"), form, conectar, estado);
+        panel.getStyleClass().add("connection-card");
+        panel.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        escena(new StackPane(panel));
         escenario.show();
         var env=System.getenv();if(env.containsKey("APP_DB_URL")&&env.containsKey("APP_DB_PASSWORD"))conectar(env.get("APP_DB_URL"),env.get("APP_DB_USER"),env.get("APP_DB_PASSWORD"),env.getOrDefault("APP_DB_SCHEMA","cuadre_pruebas"),conectar,estado);
     }
@@ -37,13 +43,42 @@ public class Aplicacion extends Application {
     private void principal(SesionBeta sesion,String esquema){
         var tabs=new TabPane();tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         var catalogo=new CatalogoView(sesion);var caja=new CajaView(sesion);var operaciones=new OperacionesView(sesion);
-        tabs.getTabs().addAll(new Tab("Catálogo",catalogo.crear()),new Tab("Stock",new StockView(sesion.stock).crear()),new Tab("Caja y cierre",caja.crear()),new Tab("Nueva operación",new VentaView(sesion).crear()),new Tab("Operaciones",operaciones.crear()));
-        tabs.getSelectionModel().selectedItemProperty().addListener((o,a,n)->Ui.accion(()->{if(n.getText().equals("Operaciones"))operaciones.refrescar();if(n.getText().equals("Caja y cierre"))caja.cargarTurnos();}));
-        var cargar=Ui.boton("Cargar datos de demostración",()->{if(!Ui.confirmar("¿Añadir artículos DEMO y sus existencias iniciales? No se sobrescribirán los artículos existentes."))return;try{new DatosDemostracionService(sesion.ds,sesion.reloj).cargar();catalogo.refrescar();Ui.informar("Datos DEMO listos. Almacén: Surquillo.");}catch(Exception e){throw new IllegalArgumentException("No se pudo cargar la demostración");}});
-        var barra=new HBox(16,new Label("BETA DE PRUEBAS · "+esquema),cargar,Ui.boton("Funciones pendientes",()->Ui.informar("Aún faltan compras documentadas, cambios de producto, reportes Excel, respaldos y restauración. Usa esta versión para probar catálogo, stock, ventas, separaciones y cierre con datos de demostración.")));barra.setPadding(new javafx.geometry.Insets(12));
-        var raiz=new BorderPane(tabs,barra,null,null,null);escena(raiz);escenario.setMaximized(true);
+        var nueva = new Tab("Nueva operación", new VentaView(sesion).crear());
+        var historial = new Tab("Operaciones", operaciones.crear());
+        var cierre = new Tab("Cierre de caja", caja.crear(() -> tabs.getSelectionModel().select(nueva),
+                () -> tabs.getSelectionModel().select(historial)));
+        var existencias = new ListaStockView(sesion);
+        var stock = new Tab("Stock", existencias.crear());
+        var productos = new Tab("Catálogo", catalogo.crear());
+        tabs.getTabs().addAll(cierre, stock, productos, nueva, new Tab("Compras",new CompraView(sesion).crear()), historial);
+        tabs.getSelectionModel().selectedItemProperty().addListener((o, anterior, actual) -> Ui.accion(() -> {
+            if (actual == historial) operaciones.refrescar();
+            if (actual == cierre) caja.cargarTurnos();
+            if (actual == stock) existencias.refrescar();
+            if (actual == productos) catalogo.refrescar();
+        }));
+        var demo = new MenuItem("Cargar datos de demostración");
+        demo.setOnAction(event -> Ui.accion(()->{if(!Ui.confirmar("¿Añadir artículos DEMO y sus existencias iniciales? No se sobrescribirán los artículos existentes."))return;try{new DatosDemostracionService(sesion.ds,sesion.reloj).cargar();catalogo.refrescar();Ui.informar("Datos DEMO listos. Almacén: Surquillo.");}catch(Exception e){throw new IllegalArgumentException("No se pudo cargar la demostración");}}));
+
+        var ayuda = new MenuItem("Funciones pendientes");
+        ayuda.setOnAction(e -> Ui.informar("Esta versión permite probar catálogo, stock, compras, ventas, separaciones y cierre. Cambios y devoluciones parciales, reportes Excel y respaldos siguen en desarrollo."));
+        var opciones = new MenuButton("Pruebas", null, demo, ayuda);
+        var entorno = new Label("Esquema de pruebas · " + esquema);
+        entorno.getStyleClass().add("muted");
+        var barra = BarraVentana.crear(escenario);
+        barra.getChildren().addAll(2, java.util.List.of(entorno, opciones));
+        escena(tabs, barra);
+        escenario.setMaximized(true);
     }
-    private void escena(javafx.scene.Parent raiz){var marco=new BorderPane(raiz,BarraVentana.crear(escenario),null,null,null);var s=new Scene(marco,1240,850);var css=getClass().getResource("/ui/beta.css");if(css!=null)s.getStylesheets().add(css.toExternalForm());escenario.setScene(s);}
+    private void escena(javafx.scene.Parent raiz) {
+        escena(raiz, BarraVentana.crear(escenario));
+    }
+    private void escena(javafx.scene.Parent raiz, HBox barra) {
+        var marco = new BorderPane(raiz, barra, null, null, null);
+        var escena = new Scene(marco, 1200, 790);
+        escena.getStylesheets().add(getClass().getResource("/ui/beta.css").toExternalForm());
+        escenario.setScene(escena);
+    }
     public static void main(String[] args) {
         launch(args);
     }

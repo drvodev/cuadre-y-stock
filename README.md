@@ -10,13 +10,13 @@ Stock incluye cantidades exactas, entradas, ajustes, descuentos sin negativos, r
 
 Catálogo incluye artículos por SKU, unidades y presentaciones, costo opcional, búsqueda paginada, desactivación, control de versiones e historial. Ahora permite administrar categorías, marcas, unidades y presentaciones sin crear artículos, combinar filtros y guardar características descriptivas con historial. Una caja con metraje descriptivo descuenta una caja; no hay conversión automática a metros cuadrados. Renombrar una opción de lista no reasigna artículos ni modifica documentos históricos.
 
-El desarrollo continúa después de la beta 0.1.2. El catálogo presenta una lista de Descripción por categoría y edición manual. Las características admiten color, medida o modelo; las imágenes quedan para después. Ver [Catálogo y sus reglas](docs/CATALOGO.md) y [orden de trabajo vigente](docs/PLAN-ACTUAL.md). La revisión gráfica se coordina con el agente de visuales; no se ha publicado un nuevo ejecutable con esta ampliación.
+El desarrollo continúa después de la beta 0.1.2. Catálogo presenta una lista de Descripción por categoría y edición manual; Stock muestra cinco columnas, filtros por disponibilidad y movimientos paginados, y consulta el saldo al cierre de una fecha. Compras registra documento, recepción y pago completo en una transacción, con costos desconocidos y pagos externos. Las imágenes quedan para después. Ver [Catálogo](docs/CATALOGO.md), [Stock](docs/STOCK-CONSULTAS.md), [Compras](docs/COMPRAS.md) y [orden vigente](docs/PLAN-ACTUAL.md). La revisión gráfica se coordina con el agente de visuales; no se ha publicado un ejecutable nuevo con estas ampliaciones.
 
 ## Abrir y probar
 
 Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
-La última suite completa del Catálogo ampliado pasó 72 pruebas, 24 de integración real. Después del ajuste de agrupación visual se recompiló y pasaron las nueve comprobaciones seleccionadas de Catálogo en memoria y SQL parametrizado. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
+La última suite completa pasó 88 pruebas, 36 de integración real con PostgreSQL. Incluye Catálogo, Stock, Compras, ventas y las regresiones de Caja. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Consultar docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas en una base desechable.
 
 ## Configuración y migraciones
 
@@ -34,6 +34,8 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 
 - [Estado, decisiones, operación y pendientes](docs/ESTADO-Y-OPERACION.md).
 - [Catálogo: listas, filtros, características y actualización](docs/CATALOGO.md).
+- [Stock: consultas, mínimos, movimientos y corte histórico](docs/STOCK-CONSULTAS.md).
+- [Compras: recepción, documento y pago coordinados](docs/COMPRAS.md).
 - [Orden de trabajo acordado](docs/PLAN-ACTUAL.md).
 - [Pruebas y alcance de la revisión de seguridad](README-PRUEBAS-SEGURIDAD.md).
 - [Reglas, pruebas y pendientes de Caja](docs/CAJA.md).
@@ -43,4 +45,4 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 - [Abrir la beta de pruebas y recorrido con resultados esperados](docs/GUIA-PRUEBAS.md).
 - Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
-Faltan compras documentadas, cambios de producto, reconstrucción al corte histórico, reportes .xls, respaldos y restauración, configuración de producción y partes del catálogo y sus pantallas. El paquete de pruebas Windows ya está disponible. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.
+Faltan cambios de producto y devoluciones parciales, reportes .xls, respaldos y restauración manuales, configuración de producción y la aceptación de las pantallas actuales. La consulta histórica de Stock ya existe; la reconstrucción comercial requerida por los reportes se decidirá con su proceso. El paquete 0.1.2 sigue disponible como referencia. No se considera terminado un requisito por tener únicamente una clase o una prueba parcial.

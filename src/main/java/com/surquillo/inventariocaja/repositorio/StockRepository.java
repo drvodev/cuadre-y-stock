@@ -18,6 +18,8 @@ public interface StockRepository {
     record ResultadoReserva(SaldoStock saldo, MovimientoStock movimiento, ReservaOperacion reserva) {}
     Optional<SaldoStock> buscar(ClaveStock clave);
     List<MovimientoStock> historial(ClaveStock clave);
+    List<com.surquillo.inventariocaja.modelo.stock.MovimientoPaginado> historial(ClaveStock clave,long despues,int limite);
+    Optional<SaldoStock> buscarAlCorte(ClaveStock clave,java.time.Instant corteExclusivo);
     Estado registrar(UUID solicitud, String huella, ClaveStock clave, Function<Optional<SaldoStock>, Estado> operacion);
     Optional<ReservaOperacion> buscarReserva(UUID reservaId);
     ResultadoReserva registrarReserva(UUID solicitud, String huella, ClaveStock clave, UUID reservaId,

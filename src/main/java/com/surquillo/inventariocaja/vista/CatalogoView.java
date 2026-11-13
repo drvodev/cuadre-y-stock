@@ -42,6 +42,12 @@ public class CatalogoView {
         columna.setCellValueFactory(c->new javafx.beans.property.ReadOnlyStringWrapper(c.getValue().getValue().descripcion()));
         columna.setPrefWidth(800);columna.setSortable(false);tabla.getColumns().add(columna);
         tabla.setShowRoot(false);tabla.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);tabla.setPrefHeight(310);
+        tabla.setRowFactory(v->new TreeTableRow<>() {
+            @Override protected void updateItem(FilaCatalogo fila,boolean vacia) {
+                super.updateItem(fila,vacia);getStyleClass().remove("category-heading");
+                if(!vacia && fila!=null && fila.articulo()==null)getStyleClass().add("category-heading");
+            }
+        });
         tabla.getSelectionModel().selectedItemProperty().addListener((o,a,v)->{if(v!=null && v.getValue().articulo()!=null)cargar(v.getValue().articulo());});
         origen.getItems().setAll(Variante.Origen.values());origen.setValue(Variante.Origen.COMPRADO);
         origenFiltro.getItems().setAll(Variante.Origen.values());origenFiltro.setPromptText("Cualquier origen");

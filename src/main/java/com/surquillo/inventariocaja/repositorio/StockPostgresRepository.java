@@ -49,6 +49,20 @@ public class StockPostgresRepository implements StockRepository {
             }
         } catch (SQLException e) { throw fallo(e); }
     }
+    @Override public List<MovimientoPaginado> historial(ClaveStock clave,long despues,int limite) {
+        String sql="SELECT id,fecha,tipo,sku,almacen,cantidad_solicitada,cambio_fisico,fisico_anterior,fisico_posterior,referencia,motivo,secuencia FROM stock_movimiento WHERE sku=? AND almacen=? AND secuencia>? ORDER BY secuencia LIMIT ?";
+        try(var c=dataSource.getConnection();var p=c.prepareStatement(sql)) {
+            p.setString(1,clave.sku());p.setString(2,clave.almacen());p.setLong(3,despues);p.setInt(4,limite);
+            try(var r=p.executeQuery()){var filas=new ArrayList<MovimientoPaginado>();while(r.next())filas.add(new MovimientoPaginado(r.getLong(12),movimiento(r)));return List.copyOf(filas);}
+        }catch(SQLException e){throw fallo(e);}
+    }
+    @Override public Optional<SaldoStock> buscarAlCorte(ClaveStock clave,java.time.Instant corteExclusivo) {
+        String sql="SELECT permite_fraccion,fisico_posterior,reservado_posterior FROM stock_movimiento WHERE sku=? AND almacen=? AND fecha<? ORDER BY secuencia DESC LIMIT 1";
+        try(var c=dataSource.getConnection();var p=c.prepareStatement(sql)) {
+            p.setString(1,clave.sku());p.setString(2,clave.almacen());p.setTimestamp(3,Timestamp.from(corteExclusivo));
+            try(var r=p.executeQuery()){return r.next()?Optional.of(new SaldoStock(clave.sku(),clave.almacen(),r.getBoolean(1),r.getBigDecimal(2),r.getBigDecimal(3))):Optional.empty();}
+        }catch(SQLException e){throw fallo(e);}
+    }
     @Override public Estado registrar(UUID id, String huella, ClaveStock clave, Function<Optional<SaldoStock>, Estado> operacion) {
         Objects.requireNonNull(id); Objects.requireNonNull(huella); Objects.requireNonNull(clave); Objects.requireNonNull(operacion);
         try (Connection c = dataSource.getConnection()) {

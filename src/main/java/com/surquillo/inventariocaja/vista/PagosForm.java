@@ -9,10 +9,11 @@ import java.util.*;
 public class PagosForm extends GridPane {
     private final Map<MedioPago,TextField> campos=new EnumMap<>(MedioPago.class);
     private final TextField recibido=Ui.campo("Si queda vacío, igual al efectivo aplicado");
-    public PagosForm() {
+    public PagosForm() { this(true); }
+    public PagosForm(boolean incluirRecibido) {
         setHgap(10); setVgap(8); int fila=0;
         for(var medio:MedioPago.values()) { var t=Ui.campo("0,00"); campos.put(medio,t); addRow(fila++,new Label(medio.name()),t); }
-        addRow(fila,new Label("Efectivo recibido"),recibido);
+        if (incluirRecibido) addRow(fila,new Label("Efectivo recibido"),recibido);
     }
     public Map<MedioPago,BigDecimal> valores() {
         Map<MedioPago,BigDecimal> valores=new EnumMap<>(MedioPago.class);

@@ -232,4 +232,70 @@ class PostgresIntegracionTest {
         assertEquals(id,new TurnoPostgresRepository(preparado).abierto("Surquillo").orElseThrow().turno().id());assertEquals(1,repositorio.listar(100).size());
         var ventas=new VentaService(preparado,Clock.systemUTC());assertTrue(ventas.listar(100).isEmpty());
     }
+    @Test void stockPaginaYReconstruyeFisicoYReservasEnPostgres() {
+        StockConsultasTest.verificarCorteYPaginas(stock);
+    }
+    @Test void listaStockDistingueMinimosAgotadosYSinIniciar() {
+        var catalogo=new CatalogoService(new ProductoPostgresRepository(ds));
+        for(String sku:java.util.List.of("BAJO","AGOTADO","NORMAL","SIN-INICIAR")) {
+            catalogo.crear(new Variante(sku,sku,"","","","","unidad",false,Variante.Origen.COMPRADO,null,"",null,null,true,0));
+            if(!sku.equals("SIN-INICIAR")) {
+                var k=new ClaveStock(sku,"Surquillo");inventario.iniciar(UUID.randomUUID(),k,false,n(sku.equals("AGOTADO")?"0":sku.equals("BAJO")?"2":"8"),"");
+                inventario.configurarMinimo(k,n("3"));
+            }
+        }
+        var lista=new ListaStockRepository(ds);
+        assertEquals(java.util.List.of("AGOTADO","BAJO"),lista.buscar("Surquillo","","",ListaStockRepository.Estado.BAJOS).stream().map(ListaStockRepository.Articulo::sku).toList());
+        assertEquals(java.util.List.of("AGOTADO"),lista.buscar("Surquillo","","",ListaStockRepository.Estado.AGOTADOS).stream().map(ListaStockRepository.Articulo::sku).toList());
+        assertEquals(java.util.List.of("SIN-INICIAR"),lista.buscar("Surquillo","","",ListaStockRepository.Estado.SIN_INICIAR).stream().map(ListaStockRepository.Articulo::sku).toList());
+        assertEquals(4,lista.buscar("Surquillo","","").size());
+    }
+    @Test void listaStockConsultaDisponibilidadYCostoSinPerderCaracteristicas() {
+        var catalogo=new CatalogoService(new ProductoPostgresRepository(ds));
+        var articulo=new Variante("LISTA-01","Lavadero 50%_!","Baños","Marca","Unidad","","unidad",false,
+            Variante.Origen.COMPRADO,null,"",n("90"),null,true,0,java.util.Map.of("color","Blanco"));
+        catalogo.crear(articulo);
+        var lista=new ListaStockRepository(ds);
+        assertNull(lista.buscar("Surquillo","50%_!","").getFirst().disponible());
+        var claveLista=new ClaveStock("LISTA-01","Surquillo");
+        inventario.iniciar(UUID.randomUUID(),claveLista,false,n("10"),"prueba");
+        new ReservaService(stock,Clock.systemUTC(),id->{}).crear(UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),claveLista,n("3"),n("3"));
+        igual("7",lista.buscar("Surquillo","50%_!","").getFirst().disponible());
+        assertTrue(lista.buscar("Surquillo","' OR 1=1 --","").isEmpty());
+        assertNull(lista.buscar("Surquillo","","").getFirst().costo());
+        catalogo.actualizar(new Variante(articulo.sku(),articulo.descripcion(),articulo.categoria(),articulo.marca(),articulo.presentacion(),
+            articulo.tipo(),articulo.unidad(),articulo.permiteFraccion(),articulo.origen(),articulo.contenido(),articulo.unidadContenido(),
+            articulo.precioVenta(),n("40"),true,articulo.version(),articulo.atributos()));
+        igual("40",lista.buscar("Surquillo","","").getFirst().costo());
+        assertEquals(java.util.Map.of("color","Blanco"),catalogo.buscarSku("LISTA-01").orElseThrow().atributos());
+        assertEquals(1,lista.buscar("Surquillo","","").getFirst().version());
+        assertTrue(lista.buscar("Surquillo","","LISTA-01").isEmpty());
+    }
+    @Test void gananciaManualConservaCierreYDetectaEdicionSimultanea() throws Exception {
+        var caja = new CajaService(new TurnoPostgresRepository(ds), Clock.systemUTC());
+        var turno = UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(), turno, "Principal", java.time.LocalDate.now(), "Ana", n("0"));
+        var solicitud = UUID.randomUUID();
+        var operacion = UUID.randomUUID();
+        var ventas = new VentaService(ds, Clock.systemUTC());
+        var item = new ItemOperacion("", "", "Lavadero", "unidad", n("1"), n("50"), "");
+        ventas.registrar(solicitud, operacion, turno, Operacion.Modalidad.VENTA,
+                new Documento(Documento.Tipo.FACTURA, "F1", true), "", "", java.util.List.of(item),
+                java.util.Map.of(MedioPago.EFECTIVO, n("50")), n("60"), java.util.Map.of());
+        var cerrado = caja.cerrar(UUID.randomUUID(), turno, caja.consultar(turno).turno().version(), n("50"), "Ana", "");
+        var libro = new LibroCajaRepository(ds);
+        var fila = libro.documentos(turno).get(solicitud);
+        assertEquals("1 unidad · Lavadero", fila.items());
+        assertNull(fila.ganancia());
+        libro.guardarGanancia(operacion, n("10"), null);
+        assertThrows(IllegalStateException.class, () -> libro.guardarGanancia(operacion, n("12"), null));
+        libro.guardarGanancia(operacion, n("-2.50"), n("10"));
+        assertThrows(IllegalStateException.class, () -> libro.guardarGanancia(operacion, n("12"), n("10")));
+        igual("-2.50", libro.documentos(turno).get(solicitud).ganancia());
+        assertEquals(cerrado, caja.consultar(turno));
+        try (var c = ds.getConnection(); var p = c.prepareStatement("SELECT count(*) FROM venta_ganancia_historial WHERE operacion=?")) {
+            p.setObject(1, operacion);
+            try (var r = p.executeQuery()) { r.next(); assertEquals(2, r.getInt(1)); }
+        }
+    }
 }

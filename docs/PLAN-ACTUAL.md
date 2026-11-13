@@ -7,7 +7,7 @@ Actualización: 12 de noviembre de 2026.
 3. Compras: documento, recepción y pago coordinados, sin duplicar entrada ni egreso.
 4. Cambios y devoluciones: al final, después de compras.
 
-Reportes y recuperación se revisarán al cerrar el primer bloque de Catálogo para decidir sus procesos. No se asume todavía un destino, retención ni restauración automática de respaldos.
+Reportes y recuperación se revisan al cerrar el primer bloque de Catálogo. El usuario decidió el 12 de noviembre: copias solo manuales y carpeta elegida por él. No se asume retención ni restauración automática; su procedimiento y los reportes se decidirán antes de implementarlos.
 
 El otro chat trabaja el tema, navegación y visual de cuadre. Se coordinan contratos de datos y migraciones para integrar y probar juntos. La beta 0.1.2 publicada se mantiene como referencia; no sustituirla durante el desarrollo ni marcar pendientes como terminados por tener solamente clases vacías.
 

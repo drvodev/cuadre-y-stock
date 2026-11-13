@@ -1,5 +1,11 @@
 # Pruebas de seguridad y resultados
 
+## Integración de Stock, Compras y visuales, 12 de noviembre de 2026
+
+La suite completa pasó 88 pruebas, 36 con PostgreSQL 17 aislado, sin errores ni omisiones. Además del bloque de Catálogo, se comprobaron cortes históricos de físico/reservado, paginación de movimientos, mínimos y agotados, edición de precios conservando atributos y ganancia manual sin alterar el cierre. Compras añade tres pruebas de modelo y ocho reales: documento/recepción/pago atómicos, pagos externos, costos desconocidos, duplicados, reintentos tras cierre, concurrencia y rollback de fallos tardíos.
+
+Se integraron los archivos del agente del chat de visuales. Ese agente revisó las cuatro pantallas desde esta compilación a 1200×790 con datos ficticios, incluido el abono Yape y las columnas de Catálogo/Stock. Esa revisión de presentación no equivale a completar manualmente todos los recorridos comerciales. La beta 0.1.2 publicada se conserva; el candidato visual 0.1.3 anterior no incluye todas estas ampliaciones.
+
 ## Ampliación de Catálogo, 12 de noviembre de 2026
 
 La suite completa pasó 72 pruebas sin fallos ni omisiones, incluidas 24 con PostgreSQL 17 aislado. Se añadieron ocho escenarios de contrato ejecutados tanto en memoria como contra PostgreSQL, más actualización desde las primeras siete migraciones y edición concurrente de una opción. Se verificaron listas sin artículos, nombres duplicados, estados, versiones, auditoría, filtros combinados, características inmutables e históricas y paginación.

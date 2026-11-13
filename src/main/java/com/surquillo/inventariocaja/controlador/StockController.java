@@ -44,6 +44,14 @@ public class StockController {
         Variante articulo=articulo(sku,false);
         return inventario.historial(new ClaveStock(articulo.sku(),almacen));
     }
+    public List<com.surquillo.inventariocaja.modelo.stock.MovimientoPaginado> historial(String sku,String almacen,long despues,int limite) {
+        var articulo=articulo(sku,false);
+        return inventario.historial(new ClaveStock(articulo.sku(),almacen),despues,limite);
+    }
+    public Optional<SaldoStock> consultarAlCorte(String sku,String almacen,java.time.Instant corteExclusivo) {
+        var articulo=articulo(sku,false);
+        return inventario.consultarAlCorte(new ClaveStock(articulo.sku(),almacen),corteExclusivo);
+    }
     private Variante articulo(String sku, boolean exigirActivo) {
         Variante v=catalogo.buscarSku(sku).orElseThrow(()->new ValidacionException("SKU no encontrado en el catálogo"));
         if (exigirActivo && !v.activo()) throw new ValidacionException("El artículo está inactivo");

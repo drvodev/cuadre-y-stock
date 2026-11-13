@@ -6,9 +6,13 @@ Actualización: 12 de noviembre de 2026. Referencia funcional: beta 3.1 y aclara
 
 Stock conserva físico, reservado y disponible por SKU/almacén, entradas, ajustes justificados, mínimos y movimientos. Las reservas admiten confirmación de faltantes, ampliación, cancelación y despacho único.
 
+La lista de Stock muestra disponibilidad y costo/precio manuales, distingue bajos, agotados y sin inicializar, pagina movimientos y consulta físico/reservado históricos. Ver STOCK-CONSULTAS.md.
+
 VentaService ya coordina documentos, cobros, separaciones, abonos, entrega y anulación completa con Stock y Caja en una transacción. La autorización simulada se utiliza en pruebas aisladas de ReservaService; no describe la integración comercial completa. Ver VENTAS.md.
 
 Caja conserva turnos, movimientos, conteo, cierres y conciliación digital en PostgreSQL.
+
+La integración visual del otro chat añade un libro de cuatro columnas y ganancia manual por documento con auditoría, sin alterar pagos o cierres. Compras coordina recepción, documento y pago íntegro, incluso desde fuente externa, con rollback y reintentos. Ver COMPRAS.md.
 
 Catálogo incorpora ahora listas independientes, edición con versiones, filtros combinados, características descriptivas e historiales. La pantalla se presenta por descripción y categoría. Ver CATALOGO.md.
 
@@ -26,10 +30,8 @@ Las pruebas crean y eliminan únicamente sus esquemas aleatorios prueba_. La cue
 
 ## Pendientes
 
-- Stock: consulta general y de mínimos/agotados, historial paginado y reconstrucción de existencias/reservas al corte acordado.
-- Compras documentadas con recepción y pago indivisibles.
 - Cambios y devoluciones parciales, conservando cierres anteriores.
-- Reportes .xls diarios/mensuales y procesos de respaldo/restauración por decidir.
+- Reportes .xls diarios/mensuales y proceso de restauración por decidir. Copias solo manuales, en carpeta elegida por el usuario.
 - Permisos de producción, actualización y recuperación comprobada en un equipo del negocio.
 - Integración y revisión visual de los cambios actuales con el agente responsable del diseño.
 - Medición de rendimiento antes de aumentar el volumen o los puestos de trabajo; precios por sede se reservan para expansión.

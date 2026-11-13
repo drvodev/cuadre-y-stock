@@ -21,6 +21,16 @@ public class StockMemoriaRepository implements StockRepository {
     private final Map<ClaveStock, List<MovimientoStock>> movimientos = new HashMap<>();
     private final Map<UUID, Solicitud> solicitudes = new HashMap<>();
     private final Map<UUID, ReservaOperacion> reservas = new HashMap<>();
+    private final Map<UUID,SaldoStock> saldosPosteriores=new HashMap<>();
+    @Override public synchronized List<com.surquillo.inventariocaja.modelo.stock.MovimientoPaginado> historial(ClaveStock clave,long despues,int limite) {
+        var lista=movimientos.getOrDefault(clave,List.of());
+        return java.util.stream.IntStream.range(0,lista.size()).filter(i->i+1>despues).limit(limite)
+            .mapToObj(i->new com.surquillo.inventariocaja.modelo.stock.MovimientoPaginado(i+1,lista.get(i))).toList();
+    }
+    @Override public synchronized Optional<SaldoStock> buscarAlCorte(ClaveStock clave,java.time.Instant corteExclusivo) {
+        return movimientos.getOrDefault(clave,List.of()).stream().filter(m->m.fecha().isBefore(corteExclusivo))
+            .reduce((a,b)->b).map(m->saldosPosteriores.get(m.id()));
+    }
 
     @Override public synchronized Optional<SaldoStock> buscar(ClaveStock clave) {
         return Optional.ofNullable(saldos.get(Objects.requireNonNull(clave)));
@@ -42,6 +52,7 @@ public class StockMemoriaRepository implements StockRepository {
         if (!new ClaveStock(resultado.saldo().sku(), resultado.saldo().almacen()).equals(clave)
                 || !resultado.movimiento().id().equals(id)) throw new IllegalStateException("Resultado inconsistente");
         saldos.put(clave, resultado.saldo());
+        saldosPosteriores.put(id,resultado.saldo());
         movimientos.computeIfAbsent(clave, k -> new ArrayList<>()).add(resultado.movimiento());
         solicitudes.put(id, new Solicitud(huella, clave, resultado));
         return resultado;
@@ -67,6 +78,7 @@ public class StockMemoriaRepository implements StockRepository {
                 || !resultado.movimiento().id().equals(id) || !new ClaveStock(resultado.saldo().sku(), resultado.saldo().almacen()).equals(clave))
             throw new IllegalStateException("Resultado inconsistente");
         saldos.put(clave, resultado.saldo());
+        saldosPosteriores.put(id,resultado.saldo());
         reservas.put(reservaId, resultado.reserva());
         movimientos.computeIfAbsent(clave, k -> new ArrayList<>()).add(resultado.movimiento());
         solicitudes.put(id, new Solicitud(huella, clave, resultado));

@@ -47,6 +47,13 @@ public class InventarioService {
 
     public Optional<SaldoStock> consultar(ClaveStock clave) { return repositorio.buscar(clave); }
     public List<MovimientoStock> historial(ClaveStock clave) { return repositorio.historial(clave); }
+    public List<MovimientoPaginado> historial(ClaveStock clave,long despues,int limite) {
+        if(despues<0 || limite<1 || limite>100)throw new ValidacionException("Cursor o tamaño de página inválido");
+        return repositorio.historial(Objects.requireNonNull(clave),despues,limite);
+    }
+    public Optional<SaldoStock> consultarAlCorte(ClaveStock clave,java.time.Instant corteExclusivo) {
+        return repositorio.buscarAlCorte(Objects.requireNonNull(clave),Objects.requireNonNull(corteExclusivo));
+    }
 
     public boolean stockBajo(ClaveStock clave, BigDecimal minimo) {
         var saldo = repositorio.buscar(clave).orElseThrow(() -> new ValidacionException("Stock no registrado"));

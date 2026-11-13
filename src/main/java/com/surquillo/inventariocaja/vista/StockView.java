@@ -20,6 +20,9 @@ public class StockView {
     private final TextField minimo = Ui.campo("Mínimo para alertas");
     private final Label saldo = new Label("Sin consultar");
     private final TextArea movimientos = new TextArea();
+    private final Button masMovimientos=new Button("Más movimientos");
+    private long cursorMovimientos;
+    private String skuConsultado="",almacenConsultado="";
     private UUID inicialId=UUID.randomUUID(),entradaId=UUID.randomUUID(),ajusteId=UUID.randomUUID();
     public StockView(StockController controlador) { this.controlador=Objects.requireNonNull(controlador); }
 
@@ -42,7 +45,16 @@ public class StockView {
             }));
         });
         movimientos.setEditable(false); movimientos.setWrapText(true);
-        var raiz=new VBox(12,new Label("Stock"),formulario,new HBox(8,consultar,inicial,compra,fabricacion,ajustar),saldo,new Label("Movimientos"),movimientos);
+        masMovimientos.setOnAction(e->ejecutar(this::cargarMovimientos));
+        var corte=new DatePicker(java.time.LocalDate.now(java.time.ZoneId.of("America/Lima")));
+        var consultarCorte=Ui.boton("Consultar al cierre del día",()->{
+            if(corte.getValue()==null)throw new IllegalArgumentException("Elige la fecha del corte");
+            var limite=corte.getValue().plusDays(1).atStartOfDay(java.time.ZoneId.of("America/Lima")).toInstant();
+            var historico=controlador.consultarAlCorte(sku.getText(),almacen.getText(),limite);
+            saldo.setText("Al cierre de "+corte.getValue()+": "+historico.map(s->"Físico: "+s.fisico()+" | Reservado: "+s.reservado()+" | Disponible: "+s.disponible()).orElse("Sin movimientos anteriores al corte"));
+        });
+        var raiz=new VBox(12,new Label("Stock"),formulario,new HBox(8,consultar,inicial,compra,fabricacion,ajustar),saldo,
+            new HBox(8,corte,consultarCorte),new Label("Movimientos"),movimientos,masMovimientos);
         raiz.setPadding(new Insets(16)); VBox.setVgrow(movimientos,Priority.ALWAYS); return raiz;
     }
     private void entrada(MovimientoStock.Tipo tipo) {
@@ -55,10 +67,17 @@ public class StockView {
         var actual=controlador.consultar(sku.getText(),almacen.getText());
         saldo.setText(actual.map(s->"Físico: "+s.fisico().toPlainString()+" | Reservado: "+s.reservado().toPlainString()+" | Disponible: "+s.disponible().toPlainString()).orElse("Aún no hay stock inicial"));
         if(actual.isPresent()&&controlador.stockBajo(sku.getText(),almacen.getText()))saldo.setText(saldo.getText()+" · STOCK BAJO / AGOTADO");
+        cursorMovimientos=0;skuConsultado=sku.getText();almacenConsultado=almacen.getText();movimientos.clear();cargarMovimientos();
+    }
+    private void cargarMovimientos() {
+        if(!skuConsultado.equals(sku.getText()) || !almacenConsultado.equals(almacen.getText())){actualizar();return;}
+        var pagina=controlador.historial(sku.getText(),almacen.getText(),cursorMovimientos,100);
         var texto=new StringBuilder();
-        for (var m:controlador.historial(sku.getText(),almacen.getText()))
+        for (var fila:pagina) {
+            var m=fila.movimiento();cursorMovimientos=fila.secuencia();
             texto.append(m.fecha()).append(" | ").append(m.tipo()).append(" | Cambio: ").append(m.cambioFisico().toPlainString()).append(" | ").append(m.motivo()).append('\n');
-        movimientos.setText(texto.toString());
+        }
+        movimientos.appendText(texto.toString());masMovimientos.setDisable(pagina.size()<100);
     }
     private BigDecimal numero() {
         try { return new BigDecimal(cantidad.getText().strip().replace(',','.')); }
