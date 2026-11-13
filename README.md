@@ -14,6 +14,8 @@ El desarrollo continúa después de la beta 0.1.2. Catálogo presenta una lista 
 
 ## Abrir y probar
 
+La beta Windows 0.1.4 está disponible en [Descargas de la versión](https://github.com/drvodev/cuadre-y-stock/releases/tag/beta-pruebas-0.1.4). Extraer todo el ZIP y abrir CuadreYStockBeta.exe conservando app y runtime. Java está incluido; PostgreSQL debe estar instalado en el equipo. Ver la guía actual antes de probar con un esquema nuevo.
+
 Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
 La última suite completa pasó 102 pruebas, 50 de integración real con PostgreSQL. Incluye Catálogo, Stock, Compras, devoluciones, cambios, Caja y respaldo/recuperación. Después se amplió y repitió la prueba de recuperación con venta, reserva, cierre y validación de migraciones. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Para la prueba de copia, configurar también STOCK_TEST_PGBIN con la carpeta de herramientas PostgreSQL. Ver docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas y una base temporal desechables.
@@ -46,7 +48,9 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 - [Integración de ventas, separaciones y anulaciones completas](docs/VENTAS.md).
 - [Responsabilidades y funciones por clase](docs/CLASES.md).
 - [Condiciones de aceptación de la beta completa](docs/BETA-ACEPTACION.md).
-- [Abrir la beta de pruebas y recorrido con resultados esperados](docs/GUIA-PRUEBAS.md).
+- [Guía actual de usuario y recorrido de prueba 0.1.4](docs/GUIA-USUARIO-014.md).
+- [Procesos y funciones de la versión 0.1.4](docs/PROCESOS-FUNCIONES-014.md).
+- [Guía histórica de la versión 0.1.2](docs/GUIA-PRUEBAS.md).
 - Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
 Se implementaron copias manuales y recuperación en una base distinta y vacía; ver RESPALDOS.md. Faltan reportes .xls, configuración de producción y la aceptación operativa de las pantallas actuales. El paquete 0.1.2 sigue disponible como referencia y no incluye estas mejoras.
