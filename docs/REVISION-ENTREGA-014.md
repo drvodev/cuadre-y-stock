@@ -16,7 +16,7 @@ El plan completo todavía no está terminado. La entrega es una beta para compro
 
 Validación automatizada: suite completa de 102 pruebas, 50 PostgreSQL, y después seis comprobaciones adicionales del agente de seguridad sobre esta versión (dos PostgreSQL). No se ejecutó una suite conjunta de 108 en una única corrida. Las seis cubren datos incorrectos, duplicados, reintentos e inyección en la lista de Stock.
 
-La revisión del ejecutable inicial 0.1.4 confirmó apertura y ventana con respuesta. Después se ajustaron únicamente dos anchos de campos de Respaldos y se reempaquetó. No se distribuyen datos ni contraseñas de laboratorio.
+La revisión del ejecutable inicial 0.1.4 confirmó apertura y ventana con respuesta. Después se ajustaron dos anchos de campos de Respaldos y se reempaquetó; el agente de visuales verificó también la apertura del ejecutable final y renderizó Respaldos desde su JAR. No se distribuyen datos ni contraseñas de laboratorio.
 
 El ZIP debe extraerse completo. Abrir CuadreYStockBeta.exe manteniendo las carpetas app y runtime. El equipo necesita PostgreSQL instalado y herramientas compatibles para las copias. Usar datos ficticios y un esquema nuevo; las versiones antiguas no deben abrir un esquema ya actualizado.
 
