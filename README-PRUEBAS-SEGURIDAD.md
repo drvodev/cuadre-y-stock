@@ -1,5 +1,11 @@
 # Pruebas de seguridad y resultados
 
+## Entrega de prueba 0.1.4, 13 de noviembre de 2026
+
+Se incorporaron seis pruebas adicionales del agente de seguridad y se ejecutaron sobre la versión actual: las seis pasaron, incluidas dos PostgreSQL. Cubren cobros/cantidades inválidos, solicitudes corregidas tras error, duplicados normalizados, campos de ítems y entradas de inyección en la lista de Stock. Se suman a la suite completa anterior de 102/50 PostgreSQL; no se afirma una ejecución conjunta de 108.
+
+El agente de visuales confirmó apertura del ejecutable 0.1.4 y revisó Respaldos a 1200×790. Se ampliaron dos campos que cortaban texto y se generó el paquete final. Ver REVISION-ENTREGA-014.md para los pendientes reales del plan.
+
 ## Respaldos manuales y recuperación, 13 de noviembre de 2026
 
 La suite completa ejecutó 102 pruebas sin fallos ni omisiones, incluidas 50 con PostgreSQL aislado. Después se amplió y repitió la prueba de respaldo: recupera Catálogo, Stock físico y reservado, una reserva, una venta y un cierre en otra base temporal; comprueba migraciones y rechaza origen, destino ocupado, plantilla, archivo corrupto y servidor remoto.

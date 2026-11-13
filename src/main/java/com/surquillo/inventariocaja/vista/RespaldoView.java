@@ -24,6 +24,7 @@ public final class RespaldoView {
         this.host=uri.getHost();this.puerto=Integer.toString(uri.getPort()<0?5432:uri.getPort());
         this.base=uri.getPath().substring(1);this.usuario=usuario;this.clave=clave;this.esquema=esquema;
         herramientas.setText("C:\\Program Files\\PostgreSQL\\17\\bin");
+        herramientas.setPrefWidth(360);destino.setPrefWidth(255);
     }
     public Parent crear(){
         var seleccionar=new Button("Elegir herramientas");

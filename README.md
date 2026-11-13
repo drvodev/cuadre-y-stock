@@ -32,6 +32,8 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 
 ## Documentación
 
+- [Revisión del plan y entrega 0.1.4](docs/REVISION-ENTREGA-014.md).
+
 - [Estado, decisiones, operación y pendientes](docs/ESTADO-Y-OPERACION.md).
 - [Catálogo: listas, filtros, características y actualización](docs/CATALOGO.md).
 - [Stock: consultas, mínimos, movimientos y corte histórico](docs/STOCK-CONSULTAS.md).
