@@ -1,60 +1,66 @@
 # Cuadre y Stock
 
-Aplicación Java para inventario y control interno de caja en Surquillo. Proyecto Maven para IntelliJ IDEA, con JavaFX y PostgreSQL. El plan contempla futuras sedes. Se priorizó una interfaz de pruebas para que el usuario pueda revisar las funciones existentes.
+**Inventario y caja para llevar el control diario de una tienda desde una sola aplicación.** Registra productos, compras y ventas; consulta lo disponible y cierra el turno con el efectivo y los medios de pago separados.
 
-## Estado actual
+El proyecto nace de una necesidad real en Surquillo: encontrar las operaciones sin depender de varios cuadernos y reducir el trabajo manual del cuadre. Está desarrollado para Windows con Java, JavaFX y PostgreSQL.
 
-La beta 0.1.5 añade pago de sueldo en efectivo con control de saldo esperado y reportes `.xls` diarios o mensuales. Los reportes reconstruyen el stock al corte; la migración 13 comienza el historial de estados de operaciones y señala como no disponibles los datos históricos anteriores que no existan. Ver [reportes y sueldos](docs/REPORTES-Y-SUELDOS.md). La aceptación en el equipo del negocio y la configuración definitiva de producción siguen pendientes.
+> **Estado: beta 0.1.5.** El circuito principal está implementado y disponible para pruebas con datos ficticios. Aún falta la aceptación en el equipo del negocio y preparar la instalación definitiva antes de usar información real.
 
-Stock, Catálogo y Caja disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Caja conserva turnos, pagos, cierres y conciliación digital. VentaService coordina documentos, ventas, separaciones, abonos, entrega y anulación completa con Stock y Caja en una unidad de trabajo. Faltan otras funciones del plan y el programa aún no está terminado para uso con datos reales.
+## ¿Qué puedes hacer?
 
-Stock incluye cantidades exactas, entradas, ajustes, descuentos sin negativos, reservas con confirmación de faltantes, ampliaciones, cancelación, despacho único, mínimos por almacén e historial. VentaService coordina pago y despacho; las pruebas aisladas de ReservaService también utilizan una autorización simulada.
+- **Catálogo:** crear y buscar artículos por SKU, organizar categorías, marcas, unidades y presentaciones, y registrar costo y precio sugerido.
+- **Stock:** consultar existencias físicas, reservadas y disponibles; registrar entradas y ajustes, revisar movimientos y detectar mínimos o productos agotados. La venta puede registrarse aunque el stock figure en cero, sin dejar cantidades negativas.
+- **Ventas y separaciones:** registrar boletas, facturas y notas de uso interno; combinar medios de pago, recibir abonos y entregar una separación cuando esté pagada y haya existencias disponibles.
+- **Compras:** registrar juntos el documento, la mercancía recibida y el pago, para evitar anotar la misma entrada o salida de dinero dos veces.
+- **Caja:** abrir y cerrar turnos, registrar gastos y retiros, contar efectivo y revisar los medios digitales por separado. Los sueldos pagados en efectivo se registran si el saldo esperado del turno es suficiente.
+- **Devoluciones y cambios:** vincular una nota a la operación original, registrar la cantidad y el importe acordado y reflejar únicamente el dinero que entra o sale.
+- **Reportes y respaldos:** exportar reportes diarios o mensuales en Excel `.xls` y crear copias manuales para recuperarlas en otra base vacía.
 
-Catálogo incluye artículos por SKU, unidades y presentaciones, costo opcional, búsqueda paginada, desactivación, control de versiones e historial. Ahora permite administrar categorías, marcas, unidades y presentaciones sin crear artículos, combinar filtros y guardar características descriptivas con historial. Una caja con metraje descriptivo descuenta una caja; no hay conversión automática a metros cuadrados. Renombrar una opción de lista no reasigna artículos ni modifica documentos históricos.
+Los comprobantes registrados son para **control interno**; la aplicación no emite comprobantes electrónicos a SUNAT. El pago de sueldos es un registro manual, no un cálculo de planilla.
 
-El desarrollo continúa después de la beta 0.1.2. Catálogo presenta una lista de Descripción por categoría y edición manual; Stock muestra cinco columnas, filtros por disponibilidad y movimientos paginados, y consulta el saldo al cierre de una fecha. Compras registra documento, recepción y pago completo en una transacción, con costos desconocidos y pagos externos. Devoluciones y cambios admite notas, cantidades parciales e importe reconocido manual; los cambios mueven únicamente la diferencia real. Las imágenes quedan para después. Ver [Catálogo](docs/CATALOGO.md), [Stock](docs/STOCK-CONSULTAS.md), [Compras](docs/COMPRAS.md), [Devoluciones y cambios](docs/DEVOLUCIONES-Y-CAMBIOS.md) y [orden vigente](docs/PLAN-ACTUAL.md).
+## Prueba la beta
 
-## Abrir y probar
+[**Descargar Cuadre y Stock 0.1.5 para Windows**](https://github.com/drvodev/cuadre-y-stock/releases/tag/beta-pruebas-0.1.5)
 
-La beta Windows 0.1.5 está disponible en [Descargas de la versión](https://github.com/drvodev/cuadre-y-stock/releases/tag/beta-pruebas-0.1.5). Extraer todo el ZIP y abrir CuadreYStockBeta.exe conservando app y runtime. Java está incluido; PostgreSQL debe estar instalado en el equipo. Ver las instrucciones incluidas antes de probar con un esquema nuevo.
+1. Descarga `Cuadre-y-Stock-Beta-Pruebas-0.1.5.zip` y extrae **todo** su contenido.
+2. Abre `CuadreYStockBeta.exe` conservando las carpetas `app` y `runtime` junto al ejecutable. Java está incluido.
+3. Conecta con PostgreSQL instalado en el equipo y usa un esquema nuevo para la prueba. Lee el archivo `LEEME-PRIMERO.txt` incluido.
+4. Prueba el recorrido con productos, pagos y clientes ficticios. Guarda las incidencias con los pasos que las producen.
 
-Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
+La aplicación se está preparando para un equipo local. Se debe comprobar la beta en el Windows del negocio, incluidos sus permisos, pantallas y proceso de recuperación. Antes de actualizar una base que ya contenga datos, crea una copia y comprueba su restauración.
 
-La suite completa del 19 de noviembre pasó 117 pruebas, sin fallos ni omisiones, en una instalación PostgreSQL 17 de laboratorio. Incluye Catálogo, Stock, Compras, devoluciones, cambios, Caja, sueldos, reportes y respaldo/recuperación. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Para la prueba de copia, configurar también STOCK_TEST_PGBIN con la carpeta de herramientas PostgreSQL. Ver docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas y una base temporal desechables.
+## Calidad y límites conocidos
 
-## Configuración y migraciones
+La suite del **19 de noviembre de 2026** ejecutó **117 pruebas sin fallos ni omisiones**, con PostgreSQL 17 aislado. Cubrió reglas de caja y stock, operaciones, compras, correcciones, reportes, concurrencia y respaldo/recuperación. El ejecutable 0.1.5 abrió hasta la pantalla de conexión; las pantallas nuevas y el recorrido completo todavía requieren aceptación manual en el equipo de trabajo.
 
-ConexionPostgres lee APP_DB_URL, APP_DB_USER y APP_DB_PASSWORD desde el entorno. Las credenciales se configuran fuera del repositorio. MigracionesPostgres aplica versiones explícitamente y verifica las ya registradas; no migra bases antiguas manualmente creadas ni modifica la instalación principal automáticamente.
+Los reportes calculan el stock al final del período elegido. El historial de estado y abonos se registra desde la migración 13; para fechas anteriores sin ese historial el reporte indica **«no disponible»**. Las copias y los reportes contienen datos del negocio y la aplicación no los cifra.
 
-La aplicación dispone de conexión local y preparación de un esquema de pruebas, pestañas de Catálogo, Stock, Caja, Nueva operación y Operaciones. La carga DEMO es opcional y no sobrescribe existencias. El paquete Windows incluye Java. Se probó visualmente carga DEMO, consulta, apertura y venta con vuelto; la prueba manual completa de todos los recorridos sigue pendiente. Ver GUIA-PRUEBAS.md antes de usarlo.
+## ¿Qué queda?
 
-Para construir un paquete desde las fuentes: ejecutar primero las pruebas y después `tools/Construir-Beta.ps1`. El empaquetador requiere Maven y un JDK con jpackage, y omite la repetición de pruebas durante el empaquetado. El paquete generado no contiene bases de datos ni contraseñas.
+1. **Validar la beta en el negocio:** recorrer catálogo, stock, ventas, separaciones, compras, caja, sueldos, devoluciones, reportes y reinicio con datos ficticios. Revisar diseño y facilidad de uso con el encargado.
+2. **Preparar el uso real:** comprobar Windows y PostgreSQL del equipo, configurar una cuenta con permisos adecuados y ensayar copia, restauración y actualización en ese entorno. Una cuenta limitada ya se probó en laboratorio; falta verificar la recuperación completa con ella.
+3. **Cerrar las mejoras funcionales pendientes:** definir y desarrollar el manejo de gastos con documento y la consulta comercial general paginada; decidir cómo corregir compras confirmadas sin perder su historial.
+4. **Revisar capacidad y evolución:** medir el comportamiento con el volumen real de artículos y operaciones. El acceso entre sedes, usuarios y conexión segura en red queda para una etapa posterior.
 
-La beta de pruebas 0.1.1 usa un tema oscuro de tonos suaves, también en los mensajes. En Catálogo se busca con Enter o con el botón Buscar; ambas acciones vuelven a la primera página. Se verificó esta búsqueda en el ejecutable Windows con los datos DEMO. La versión del paquete puede indicarse con `-Version` al construirlo.
+El seguimiento detallado está en [plan actual](docs/PLAN-ACTUAL.md) y [condiciones de aceptación](docs/BETA-ACEPTACION.md).
 
-La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en conexión y pantalla principal. Conserva los controles nativos de Windows. Cerrar la ventana no cierra el turno de Caja. Pasaron 40 pruebas Maven y se omitieron 14 integraciones. El paquete se generó, pero Control de aplicaciones de Windows bloqueó su apertura en este equipo; los nuevos controles aún requieren validación visual. Ver la guía para el alcance de cada entrega.
+## Para desarrollo
+
+El proyecto usa **Java 21 o superior, JavaFX, Maven y PostgreSQL**. Abre la carpeta o `pom.xml` en IntelliJ IDEA y carga el proyecto Maven.
+
+```bash
+mvn test
+```
+
+Las pruebas de integración se omiten si no se configura `STOCK_TEST_DB=true`; usan una base desechable y crean y eliminan esquemas de prueba. La prueba de recuperación también necesita `STOCK_TEST_PGBIN`. Consulta [estado y operación](docs/ESTADO-Y-OPERACION.md) antes de ejecutarlas y conserva las credenciales fuera del repositorio.
+
+Para empaquetar después de ejecutar las pruebas, usa `tools/Construir-Beta.ps1` con Maven y un JDK que incluya `jpackage`. El empaquetador no repite las pruebas.
 
 ## Documentación
 
-- [Revisión del plan y entrega 0.1.4](docs/REVISION-ENTREGA-014.md).
-
-- [Estado, decisiones, operación y pendientes](docs/ESTADO-Y-OPERACION.md).
-- [Catálogo: listas, filtros, características y actualización](docs/CATALOGO.md).
-- [Stock: consultas, mínimos, movimientos y corte histórico](docs/STOCK-CONSULTAS.md).
-- [Compras: recepción, documento y pago coordinados](docs/COMPRAS.md).
-- [Notas de devolución y cambios con importe manual](docs/DEVOLUCIONES-Y-CAMBIOS.md).
-- [Copias manuales y recuperación en base vacía](docs/RESPALDOS.md).
-- [Preparación de PostgreSQL y cuenta limitada](docs/PREPARACION-POSTGRESQL.md).
-- [Reportes Excel y pago de sueldos](docs/REPORTES-Y-SUELDOS.md).
-- [Orden de trabajo acordado](docs/PLAN-ACTUAL.md).
-- [Pruebas y alcance de la revisión de seguridad](README-PRUEBAS-SEGURIDAD.md).
-- [Reglas, pruebas y pendientes de Caja](docs/CAJA.md).
-- [Integración de ventas, separaciones y anulaciones completas](docs/VENTAS.md).
-- [Responsabilidades y funciones por clase](docs/CLASES.md).
-- [Condiciones de aceptación de la beta completa](docs/BETA-ACEPTACION.md).
-- [Guía actual de usuario y recorrido de prueba 0.1.4](docs/GUIA-USUARIO-014.md).
-- [Procesos y funciones de la versión 0.1.4](docs/PROCESOS-FUNCIONES-014.md).
-- [Guía histórica de la versión 0.1.2](docs/GUIA-PRUEBAS.md).
-- Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
-
-Se implementaron copias manuales y recuperación en una base distinta y vacía; ver RESPALDOS.md. La configuración de producción y la aceptación operativa de las pantallas siguen pendientes. El paquete 0.1.4 no incluye los cambios de la siguiente beta.
+- [Reportes y pago de sueldos](docs/REPORTES-Y-SUELDOS.md)
+- [Preparación de PostgreSQL y cuenta limitada](docs/PREPARACION-POSTGRESQL.md)
+- [Copias manuales y recuperación](docs/RESPALDOS.md)
+- [Catálogo](docs/CATALOGO.md) · [Stock](docs/STOCK-CONSULTAS.md) · [Compras](docs/COMPRAS.md) · [Devoluciones y cambios](docs/DEVOLUCIONES-Y-CAMBIOS.md)
+- [Clases y responsabilidades](docs/CLASES.md) · [Pruebas y seguridad](README-PRUEBAS-SEGURIDAD.md)
+- [Guía de usuario 0.1.4](docs/GUIA-USUARIO-014.md): útil para el circuito anterior; los reportes y sueldos de 0.1.5 se explican en su documento específico.
