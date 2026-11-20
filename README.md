@@ -4,7 +4,7 @@ Aplicación Java para inventario y control interno de caja en Surquillo. Proyect
 
 ## Estado actual
 
-En desarrollo para la siguiente beta: pago de sueldo en efectivo con control de saldo esperado y reportes `.xls` diarios o mensuales. Los reportes reconstruyen el stock al corte; la migración 13 comienza el historial de estados de operaciones y señala como no disponibles los datos históricos anteriores que no existan. Ver [reportes y sueldos](docs/REPORTES-Y-SUELDOS.md). La aceptación en el equipo del negocio y la configuración definitiva de producción siguen pendientes.
+La beta 0.1.5 añade pago de sueldo en efectivo con control de saldo esperado y reportes `.xls` diarios o mensuales. Los reportes reconstruyen el stock al corte; la migración 13 comienza el historial de estados de operaciones y señala como no disponibles los datos históricos anteriores que no existan. Ver [reportes y sueldos](docs/REPORTES-Y-SUELDOS.md). La aceptación en el equipo del negocio y la configuración definitiva de producción siguen pendientes.
 
 Stock, Catálogo y Caja disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Caja conserva turnos, pagos, cierres y conciliación digital. VentaService coordina documentos, ventas, separaciones, abonos, entrega y anulación completa con Stock y Caja en una unidad de trabajo. Faltan otras funciones del plan y el programa aún no está terminado para uso con datos reales.
 
@@ -16,7 +16,7 @@ El desarrollo continúa después de la beta 0.1.2. Catálogo presenta una lista 
 
 ## Abrir y probar
 
-La beta Windows 0.1.4 está disponible en [Descargas de la versión](https://github.com/drvodev/cuadre-y-stock/releases/tag/beta-pruebas-0.1.4). Extraer todo el ZIP y abrir CuadreYStockBeta.exe conservando app y runtime. Java está incluido; PostgreSQL debe estar instalado en el equipo. Ver la guía actual antes de probar con un esquema nuevo.
+La beta Windows 0.1.5 está disponible en [Descargas de la versión](https://github.com/drvodev/cuadre-y-stock/releases/tag/beta-pruebas-0.1.5). Extraer todo el ZIP y abrir CuadreYStockBeta.exe conservando app y runtime. Java está incluido; PostgreSQL debe estar instalado en el equipo. Ver las instrucciones incluidas antes de probar con un esquema nuevo.
 
 Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
