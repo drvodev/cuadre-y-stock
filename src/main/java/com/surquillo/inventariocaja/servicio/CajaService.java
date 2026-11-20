@@ -38,10 +38,22 @@ public class CajaService {
     }
     public TurnoRepository.Estado registrar(UUID solicitud,UUID turno,MovimientoCaja.Tipo tipo,MovimientoCaja.Fuente fuente,
                                             Map<MedioPago,BigDecimal> pagos,String referencia) {
-        return registrar(solicitud,turno,tipo,fuente,pagos,referencia,"");
+        return registrar(solicitud,turno,tipo,fuente,pagos,referencia,"",false);
+    }
+    /** Registra un sueldo pagado en efectivo, sujeto al efectivo esperado del turno. */
+    public TurnoRepository.Estado pagarSueldo(UUID solicitud, UUID turno, String trabajador, String detalle, BigDecimal monto) {
+        String nombre=texto(trabajador,"Trabajador");
+        String nota=detalle==null?"":detalle.strip();
+        String referencia="Sueldo · "+nombre+(nota.isEmpty()?"":" · "+nota);
+        return registrar(solicitud,turno,MovimientoCaja.Tipo.GASTO,MovimientoCaja.Fuente.CAJA,
+                Map.of(MedioPago.EFECTIVO,importe(monto,false)),referencia,huella("SUELDO",nombre,nota),true);
     }
     private TurnoRepository.Estado registrar(UUID solicitud,UUID turno,MovimientoCaja.Tipo tipo,MovimientoCaja.Fuente fuente,
                                              Map<MedioPago,BigDecimal> pagos,String referencia,String contextoCobro) {
+        return registrar(solicitud,turno,tipo,fuente,pagos,referencia,contextoCobro,false);
+    }
+    private TurnoRepository.Estado registrar(UUID solicitud,UUID turno,MovimientoCaja.Tipo tipo,MovimientoCaja.Fuente fuente,
+                                             Map<MedioPago,BigDecimal> pagos,String referencia,String contextoCobro,boolean verificarEfectivo) {
         Objects.requireNonNull(tipo); Objects.requireNonNull(fuente);
         Map<MedioPago,BigDecimal> lineas=lineas(pagos); String ref=texto(referencia,"Referencia");
         if((tipo==MovimientoCaja.Tipo.COBRO || tipo==MovimientoCaja.Tipo.OTRO_INGRESO) && fuente!=MovimientoCaja.Fuente.CAJA)
@@ -54,6 +66,11 @@ public class CajaService {
         String caja=consultar(turno).turno().caja();
         return repo.aplicar(solicitud,comando,caja,turno,anterior->{
             var estado=abierto(anterior);
+            if(verificarEfectivo) {
+                BigDecimal disponible=estado.turno().fondoInicial().add(flujo(estado).get(MedioPago.EFECTIVO));
+                if(disponible.compareTo(lineas.get(MedioPago.EFECTIVO))<0)
+                    throw new ValidacionException("Efectivo insuficiente para pagar el sueldo. Efectivo esperado: S/ "+disponible.toPlainString());
+            }
             var movimientos=new ArrayList<>(estado.movimientos());
             movimientos.add(new MovimientoCaja(solicitud,reloj.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS),tipo,fuente,lineas,ref));
             return new TurnoRepository.Estado(version(estado.turno(),false),movimientos,null);

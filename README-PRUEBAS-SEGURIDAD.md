@@ -1,5 +1,9 @@
 # Pruebas de seguridad y resultados
 
+## Reportes y sueldos, 19 de noviembre de 2026
+
+La suite completa ejecutó 117 pruebas sin fallos ni omisiones, con PostgreSQL 17 aislado. Incluye pago con efectivo suficiente e insuficiente, reintentos y concurrencia, migración de operaciones existentes, cuenta limitada, reportes Excel con cortes de caja y Stock, y conciliación de un cambio con cobro adicional. Se probó que un cierre posterior no se atribuye al corte anterior. Las pruebas usan datos ficticios y no certifican el funcionamiento ni los permisos del equipo de producción.
+
 ## Entrega de prueba 0.1.4, 13 de noviembre de 2026
 
 Se incorporaron seis pruebas adicionales del agente de seguridad y se ejecutaron sobre la versión actual: las seis pasaron, incluidas dos PostgreSQL. Cubren cobros/cantidades inválidos, solicitudes corregidas tras error, duplicados normalizados, campos de ítems y entradas de inyección en la lista de Stock. Se suman a la suite completa anterior de 102/50 PostgreSQL; no se afirma una ejecución conjunta de 108.

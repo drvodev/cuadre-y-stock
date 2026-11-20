@@ -83,4 +83,28 @@ class CajaServiceTest {
         assertThrows(ValidacionException.class,()->caja.cobrar(id,turno,n("10"),pagos,n("20"),"venta"));
         assertEquals(1,caja.consultar(turno).movimientos().size()); igual("110",caja.efectivoEsperado(turno));
     }
+    @Test void sueldoRequiereEfectivoYConservaElReintento() {
+        abrir(); var solicitud=UUID.randomUUID();
+        assertThrows(ValidacionException.class,()->caja.pagarSueldo(solicitud,turno,"Ana","semana",n("100.01")));
+        assertTrue(caja.consultar(turno).movimientos().isEmpty());
+        assertThrows(ValidacionException.class,()->caja.pagarSueldo(solicitud,turno," ","",n("1")));
+        var pago=caja.pagarSueldo(solicitud,turno,"Ana","semana",n("100"));
+        igual("0",caja.efectivoEsperado(turno));
+        assertEquals("Sueldo · Ana · semana",pago.movimientos().getFirst().referencia());
+        assertEquals(pago,caja.pagarSueldo(solicitud,turno,"Ana","semana",n("100.00")));
+        assertThrows(ValidacionException.class,()->caja.pagarSueldo(solicitud,turno,"Ana","otra semana",n("100")));
+        assertThrows(ValidacionException.class,()->caja.pagarSueldo(UUID.randomUUID(),turno,"Luis","",n("1")));
+        caja.cerrar(UUID.randomUUID(),turno,pago.turno().version(),n("0"),"Ana","");
+        assertEquals(pago,caja.pagarSueldo(solicitud,turno,"Ana","semana",n("100")));
+        assertThrows(ValidacionException.class,()->caja.pagarSueldo(UUID.randomUUID(),turno,"Ana","",n("1")));
+    }
+    @Test void sueldosConcurrentesNoGastanDosVecesElMismoEfectivo() throws Exception {
+        abrir(); var pool=Executors.newFixedThreadPool(2); var inicio=new CountDownLatch(1);
+        try {
+            Callable<Boolean> pago=()->{ inicio.await(); try { caja.pagarSueldo(UUID.randomUUID(),turno,"Trabajador","",n("70")); return true; } catch(ValidacionException e) { return false; } };
+            var a=pool.submit(pago); var b=pool.submit(pago); inicio.countDown();
+            assertNotEquals(a.get(5,TimeUnit.SECONDS),b.get(5,TimeUnit.SECONDS));
+            igual("30",caja.efectivoEsperado(turno)); assertEquals(1,caja.consultar(turno).movimientos().size());
+        } finally { pool.shutdownNow(); }
+    }
 }

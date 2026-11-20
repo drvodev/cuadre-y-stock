@@ -56,7 +56,7 @@ public class CajaView {
             return seleccion == null || seleccion.documento() == null;
         }, libro.getSelectionModel().selectedItemProperty()));
         tienda = movimiento("Gastos de tienda o compras", "Gasto de tienda", "Compra");
-        personal = movimiento("Pagos de sueldo o comisiones", "Sueldo", "Comisión");
+        personal = seccion("Pagos al personal", Ui.panel(pagoSueldo(), movimiento("Comisiones", "Comisión")));
         otros = movimiento("Otros movimientos", "Retiro", "Otro ingreso");
         var cerrar = Ui.boton("Confirmar cierre", this::cerrar);
         cerrar.getStyleClass().add("primary-action");
@@ -126,6 +126,25 @@ public class CajaView {
         importe.disableProperty().bind(combinado.expandedProperty());
         medio.disableProperty().bind(combinado.expandedProperty());
         return seccion(titulo, Ui.panel(campos, combinado, guardar));
+    }
+    private TitledPane pagoSueldo() {
+        var trabajador=Ui.campo("Nombre del trabajador");
+        var detalle=Ui.campo("Periodo o referencia (opcional)");
+        var importe=Ui.campo("0,00");
+        var campos=new GridPane(); campos.setHgap(12); campos.setVgap(8);
+        campos.addRow(0,new Label("Trabajador"),trabajador,new Label("Importe en efectivo (S/)"),importe);
+        campos.addRow(1,new Label("Periodo o referencia"),detalle);
+        var guardar=new Button("Registrar pago de sueldo");
+        guardar.setOnAction(new javafx.event.EventHandler<>() {
+            UUID solicitud=UUID.randomUUID();
+            public void handle(javafx.event.ActionEvent e) { Ui.accion(()->{
+                sesion.caja.pagarSueldo(solicitud,sesion.exigirTurno(),trabajador.getText(),detalle.getText(),Ui.numero(importe.getText()));
+                solicitud=UUID.randomUUID(); trabajador.clear(); detalle.clear(); importe.clear(); refrescar();
+                Ui.informar("Pago de sueldo registrado en efectivo.");
+            }); }
+        });
+        return seccion("Pago de sueldo en efectivo",Ui.panel(campos,
+                new Label("Verifica el dinero físico; se controla también el efectivo esperado del turno."),guardar));
     }
     private void editarGanancia() {
         var doc = libro.getSelectionModel().getSelectedItem().documento();

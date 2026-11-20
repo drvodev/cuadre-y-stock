@@ -4,13 +4,15 @@ Aplicación Java para inventario y control interno de caja en Surquillo. Proyect
 
 ## Estado actual
 
+En desarrollo para la siguiente beta: pago de sueldo en efectivo con control de saldo esperado y reportes `.xls` diarios o mensuales. Los reportes reconstruyen el stock al corte; la migración 13 comienza el historial de estados de operaciones y señala como no disponibles los datos históricos anteriores que no existan. Ver [reportes y sueldos](docs/REPORTES-Y-SUELDOS.md). La aceptación en el equipo del negocio y la configuración definitiva de producción siguen pendientes.
+
 Stock, Catálogo y Caja disponen de lógica, repositorios en memoria para pruebas y persistencia PostgreSQL comprobada. Caja conserva turnos, pagos, cierres y conciliación digital. VentaService coordina documentos, ventas, separaciones, abonos, entrega y anulación completa con Stock y Caja en una unidad de trabajo. Faltan otras funciones del plan y el programa aún no está terminado para uso con datos reales.
 
 Stock incluye cantidades exactas, entradas, ajustes, descuentos sin negativos, reservas con confirmación de faltantes, ampliaciones, cancelación, despacho único, mínimos por almacén e historial. VentaService coordina pago y despacho; las pruebas aisladas de ReservaService también utilizan una autorización simulada.
 
 Catálogo incluye artículos por SKU, unidades y presentaciones, costo opcional, búsqueda paginada, desactivación, control de versiones e historial. Ahora permite administrar categorías, marcas, unidades y presentaciones sin crear artículos, combinar filtros y guardar características descriptivas con historial. Una caja con metraje descriptivo descuenta una caja; no hay conversión automática a metros cuadrados. Renombrar una opción de lista no reasigna artículos ni modifica documentos históricos.
 
-El desarrollo continúa después de la beta 0.1.2. Catálogo presenta una lista de Descripción por categoría y edición manual; Stock muestra cinco columnas, filtros por disponibilidad y movimientos paginados, y consulta el saldo al cierre de una fecha. Compras registra documento, recepción y pago completo en una transacción, con costos desconocidos y pagos externos. Devoluciones y cambios admite notas, cantidades parciales e importe reconocido manual; los cambios mueven únicamente la diferencia real. Las imágenes quedan para después. Ver [Catálogo](docs/CATALOGO.md), [Stock](docs/STOCK-CONSULTAS.md), [Compras](docs/COMPRAS.md), [Devoluciones y cambios](docs/DEVOLUCIONES-Y-CAMBIOS.md) y [orden vigente](docs/PLAN-ACTUAL.md). No se ha publicado un ejecutable nuevo con estas ampliaciones.
+El desarrollo continúa después de la beta 0.1.2. Catálogo presenta una lista de Descripción por categoría y edición manual; Stock muestra cinco columnas, filtros por disponibilidad y movimientos paginados, y consulta el saldo al cierre de una fecha. Compras registra documento, recepción y pago completo en una transacción, con costos desconocidos y pagos externos. Devoluciones y cambios admite notas, cantidades parciales e importe reconocido manual; los cambios mueven únicamente la diferencia real. Las imágenes quedan para después. Ver [Catálogo](docs/CATALOGO.md), [Stock](docs/STOCK-CONSULTAS.md), [Compras](docs/COMPRAS.md), [Devoluciones y cambios](docs/DEVOLUCIONES-Y-CAMBIOS.md) y [orden vigente](docs/PLAN-ACTUAL.md).
 
 ## Abrir y probar
 
@@ -18,7 +20,7 @@ La beta Windows 0.1.4 está disponible en [Descargas de la versión](https://git
 
 Abrir la carpeta o el archivo pom.xml en IntelliJ y cargar como proyecto Maven. Configurar JDK 21 o superior. Ejecutar mvn test desde el panel Maven o desde una terminal con Maven instalado.
 
-La última suite completa pasó 102 pruebas, 50 de integración real con PostgreSQL. Incluye Catálogo, Stock, Compras, devoluciones, cambios, Caja y respaldo/recuperación. Después se amplió y repitió la prueba de recuperación con venta, reserva, cierre y validación de migraciones. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Para la prueba de copia, configurar también STOCK_TEST_PGBIN con la carpeta de herramientas PostgreSQL. Ver docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas y una base temporal desechables.
+La suite completa del 19 de noviembre pasó 117 pruebas, sin fallos ni omisiones, en una instalación PostgreSQL 17 de laboratorio. Incluye Catálogo, Stock, Compras, devoluciones, cambios, Caja, sueldos, reportes y respaldo/recuperación. Las pruebas de integración se omiten si no se configura STOCK_TEST_DB=true. Para la prueba de copia, configurar también STOCK_TEST_PGBIN con la carpeta de herramientas PostgreSQL. Ver docs/ESTADO-Y-OPERACION.md antes de ejecutarlas: crean y eliminan esquemas y una base temporal desechables.
 
 ## Configuración y migraciones
 
@@ -42,6 +44,8 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 - [Compras: recepción, documento y pago coordinados](docs/COMPRAS.md).
 - [Notas de devolución y cambios con importe manual](docs/DEVOLUCIONES-Y-CAMBIOS.md).
 - [Copias manuales y recuperación en base vacía](docs/RESPALDOS.md).
+- [Preparación de PostgreSQL y cuenta limitada](docs/PREPARACION-POSTGRESQL.md).
+- [Reportes Excel y pago de sueldos](docs/REPORTES-Y-SUELDOS.md).
 - [Orden de trabajo acordado](docs/PLAN-ACTUAL.md).
 - [Pruebas y alcance de la revisión de seguridad](README-PRUEBAS-SEGURIDAD.md).
 - [Reglas, pruebas y pendientes de Caja](docs/CAJA.md).
@@ -53,4 +57,4 @@ La beta 0.1.2 añade una barra con Minimizar, Maximizar/Restaurar y Cerrar en co
 - [Guía histórica de la versión 0.1.2](docs/GUIA-PRUEBAS.md).
 - Referencia funcional: especificación beta 3.1 y aclaraciones posteriores del chat.
 
-Se implementaron copias manuales y recuperación en una base distinta y vacía; ver RESPALDOS.md. Faltan reportes .xls, configuración de producción y la aceptación operativa de las pantallas actuales. El paquete 0.1.2 sigue disponible como referencia y no incluye estas mejoras.
+Se implementaron copias manuales y recuperación en una base distinta y vacía; ver RESPALDOS.md. La configuración de producción y la aceptación operativa de las pantallas siguen pendientes. El paquete 0.1.4 no incluye los cambios de la siguiente beta.

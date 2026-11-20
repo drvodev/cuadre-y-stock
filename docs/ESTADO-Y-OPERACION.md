@@ -1,5 +1,7 @@
 # Estado y operación
 
+Actualización del 19 de noviembre de 2026: el código añade exportación `.xls`, historia de estados desde la migración 13 y pago de sueldos en efectivo. Una cuenta limitada propietaria de su esquema se probó en PostgreSQL aislado. La recuperación completa con esa cuenta y la aceptación en el equipo de Surquillo siguen pendientes. Ver [reportes y sueldos](REPORTES-Y-SUELDOS.md) y [preparación PostgreSQL](PREPARACION-POSTGRESQL.md). Los apartados fechados de abajo conservan el contexto de su hito anterior.
+
 Actualización: 13 de noviembre de 2026. Referencia funcional: beta 3.1 y aclaraciones posteriores. Ver PLAN-ACTUAL.md para el orden vigente.
 
 ## Implementado
@@ -32,7 +34,7 @@ Las pruebas crean y eliminan únicamente sus esquemas aleatorios prueba_. La cue
 
 ## Pendientes
 
-- Reportes .xls diarios/mensuales. Las copias manuales y recuperación en base distinta y vacía están implementadas; ver RESPALDOS.md.
+- Aceptación de reportes .xls diarios/mensuales y comprobación de sus datos en el equipo de trabajo. Las copias manuales y recuperación en base distinta y vacía están implementadas; ver RESPALDOS.md.
 - Permisos de producción, actualización y recuperación comprobada en un equipo del negocio.
 - Integración y revisión visual de los cambios actuales con el agente responsable del diseño.
 - Medición de rendimiento antes de aumentar el volumen o los puestos de trabajo; precios por sede se reservan para expansión.

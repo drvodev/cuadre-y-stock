@@ -8,7 +8,12 @@ public final class PreparacionBeta {
             throw new IllegalArgumentException("Elige un esquema de pruebas: letras minúsculas, números y guion bajo; por ejemplo cuadre_pruebas");
         if(url.contains("currentSchema="))throw new IllegalArgumentException("Configura el esquema por separado");
         var base=new ConexionPostgres(url,usuario,clave);
-        try(var c=base.getConnection();var s=c.createStatement()) {s.execute("CREATE SCHEMA IF NOT EXISTS "+esquema);}
+        try(var c=base.getConnection();var p=c.prepareStatement("SELECT 1 FROM pg_namespace WHERE nspname=?")) {
+            p.setString(1,esquema);
+            try(var r=p.executeQuery()) {
+                if(!r.next()) try(var s=c.createStatement()) { s.execute("CREATE SCHEMA IF NOT EXISTS "+esquema); }
+            }
+        }
         var ds=new ConexionPostgres(url+(url.contains("?")?"&":"?")+"currentSchema="+esquema,usuario,clave);
         MigracionesPostgres.aplicar(ds);return ds;
     }

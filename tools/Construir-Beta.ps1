@@ -1,9 +1,10 @@
-param([string]$MavenCommand = 'mvn', [string]$MavenRepository = '', [string]$Destino = '', [string]$Version = '0.1.4', [switch]$SinConexion)
+param([string]$MavenCommand = 'mvn', [string]$MavenRepository = '', [string]$Destino = '', [string]$Version = '0.1.5', [switch]$SinConexion)
 $ErrorActionPreference='Stop'
 $proyecto=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location -LiteralPath $proyecto
 if([string]::IsNullOrWhiteSpace($Destino)) { $Destino=Join-Path $proyecto 'distribucion' }
 if(Test-Path -LiteralPath (Join-Path $Destino 'CuadreYStockBeta')) { throw 'Ya existe una beta en ese destino. Elige otro con -Destino para conservar la anterior.' }
+New-Item -ItemType Directory -Force -Path $Destino | Out-Null
 $marca=Get-Date -Format 'yyyyMMdd-HHmmss'
 $preparacion=Join-Path $proyecto "target\beta-$marca"
 $bibliotecas=Join-Path $preparacion 'lib'

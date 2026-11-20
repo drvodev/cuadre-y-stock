@@ -140,6 +140,122 @@ class PostgresIntegracionTest {
         assertThrows(ValidacionException.class,()->reinicio.cobrar(cobroId,turno,n("150"),pagos,n("200"),"B3847"));
         assertThrows(ValidacionException.class,()->reinicio.cobrar(UUID.randomUUID(),turno,n("150"),pagos,n("100"),"otra"));
     }
+    @Test void sueldoConcurrenteValidaEfectivoEnTransaccionYReintentaTrasReinicio() throws Exception {
+        var caja=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC()); var turno=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Sueldos",java.time.LocalDate.now(),"Encargado",n("100"));
+        var pool=Executors.newFixedThreadPool(2); var inicio=new CountDownLatch(1);
+        var id1=UUID.randomUUID(); var id2=UUID.randomUUID();
+        try {
+            java.util.function.Function<UUID,Callable<Boolean>> tarea=id->()->{ inicio.await(); try { caja.pagarSueldo(id,turno,"Ana","semana",n("70")); return true; } catch(ValidacionException e) { return false; } };
+            var a=pool.submit(tarea.apply(id1)); var b=pool.submit(tarea.apply(id2)); inicio.countDown();
+            boolean primero=a.get(20,TimeUnit.SECONDS), segundo=b.get(20,TimeUnit.SECONDS); assertNotEquals(primero,segundo);
+            igual("30",caja.efectivoEsperado(turno));
+            var reiniciado=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC());
+            reiniciado.pagarSueldo(primero?id1:id2,turno,"Ana","semana",n("70"));
+            assertEquals(1,reiniciado.consultar(turno).movimientos().size());
+            assertThrows(ValidacionException.class,()->reiniciado.pagarSueldo(UUID.randomUUID(),turno,"Ana","",n("31")));
+        } finally { pool.shutdownNow(); }
+    }
+    @Test void reporteXlsReconciliaCajaYStockAlCorteSinSobrescribir(@org.junit.jupiter.api.io.TempDir java.nio.file.Path carpeta) throws Exception {
+        var dia=java.time.LocalDate.of(2026,2,1);
+        var reloj=Clock.fixed(java.time.Instant.parse("2026-02-01T17:00:00Z"),java.time.ZoneOffset.UTC);
+        var caja=new CajaService(new TurnoPostgresRepository(ds),reloj);var turno=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Prueba",dia,"Ana",n("100"));
+        caja.cobrar(UUID.randomUUID(),turno,n("50"),java.util.Map.of(MedioPago.EFECTIVO,n("50")),n("50"),"Cobro");
+        caja.pagarSueldo(UUID.randomUUID(),turno,"Luis","semana",n("70"));
+        caja.cerrar(UUID.randomUUID(),turno,caja.consultar(turno).turno().version(),n("80"),"Ana","");
+        var inventarioDia=new InventarioService(stock,reloj);
+        inventarioDia.iniciar(UUID.randomUUID(),clave,false,n("10"),"");
+        inventarioDia.venta(UUID.randomUUID(),clave,n("2"),"venta");
+        new InventarioService(stock,Clock.fixed(java.time.Instant.parse("2026-03-01T17:00:00Z"),java.time.ZoneOffset.UTC))
+                .entrada(UUID.randomUUID(),clave,MovimientoStock.Tipo.COMPRA,n("5"),"posterior");
+        var ruta=carpeta.resolve("reporte.xls");var reportes=new ReporteService(ds);reportes.exportar(dia,dia,ruta);
+        try(var in=java.nio.file.Files.newInputStream(ruta);var libro=new org.apache.poi.hssf.usermodel.HSSFWorkbook(in)) {
+            assertNotNull(libro.getSheet("Resumen")); assertNotNull(libro.getSheet("Anulaciones y cambios"));
+            var cierre=libro.getSheet("Cuadres").getRow(1); assertEquals(80,cierre.getCell(5).getNumericCellValue());
+            assertEquals(80,cierre.getCell(6).getNumericCellValue());
+            var saldo=libro.getSheet("Saldos Stock").getRow(1); assertEquals("SKU-001",saldo.getCell(0).getStringCellValue());
+            assertEquals(8,saldo.getCell(2).getNumericCellValue());
+            var egreso=libro.getSheet("Egresos").getRow(1);assertEquals("Sueldo · Luis · semana",egreso.getCell(4).getStringCellValue());
+            assertEquals(70,egreso.getCell(6).getNumericCellValue());
+        }
+        long tamano=java.nio.file.Files.size(ruta);
+        assertThrows(IllegalArgumentException.class,()->reportes.exportar(dia,dia,ruta));
+        assertEquals(tamano,java.nio.file.Files.size(ruta));
+        reportes.exportar(dia,dia,carpeta.resolve("segundo.xls"));
+    }
+    @Test void reporteRecuperaEstadoYSaldoHistoricosSinInventarDatos(@org.junit.jupiter.api.io.TempDir java.nio.file.Path carpeta) throws Exception {
+        var febrero=Clock.fixed(java.time.Instant.parse("2026-02-01T17:00:00Z"),java.time.ZoneOffset.UTC);
+        var marzo=Clock.fixed(java.time.Instant.parse("2026-03-01T17:00:00Z"),java.time.ZoneOffset.UTC);
+        var caja=new CajaService(new TurnoPostgresRepository(ds),febrero);var turno=UUID.randomUUID();var op=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Prueba",java.time.LocalDate.of(2026,2,1),"Ana",n("0"));
+        var item=new ItemOperacion("","","Artículo ficticio","unidad",n("1"),n("100"),"");
+        new VentaService(ds,febrero).registrar(UUID.randomUUID(),op,turno,Operacion.Modalidad.SEPARACION,
+                new Documento(Documento.Tipo.NOTA_VENTA,"N-PRUEBA",true),"Cliente ficticio","",java.util.List.of(item),java.util.Map.of(MedioPago.EFECTIVO,n("40")),n("40"),java.util.Map.of());
+        new VentaService(ds,marzo).abonar(UUID.randomUUID(),op,turno,java.util.Map.of(MedioPago.EFECTIVO,n("60")),n("60"));
+        try(var c=ds.getConnection();var p=c.prepareStatement("UPDATE venta_estado_historial SET fecha=CASE WHEN abonado=40 THEN ?::timestamptz ELSE ?::timestamptz END WHERE operacion=?")) {
+            p.setTimestamp(1,java.sql.Timestamp.from(febrero.instant()));p.setTimestamp(2,java.sql.Timestamp.from(marzo.instant()));p.setObject(3,op);p.executeUpdate();
+        }
+        var archivo=carpeta.resolve("febrero.xls");new ReporteService(ds).exportar(java.time.LocalDate.of(2026,2,1),java.time.LocalDate.of(2026,2,28),archivo);
+        try(var in=java.nio.file.Files.newInputStream(archivo);var libro=new org.apache.poi.hssf.usermodel.HSSFWorkbook(in)) {
+            var fila=libro.getSheet("Operaciones").getRow(1);
+            assertEquals(40,fila.getCell(5).getNumericCellValue());assertEquals(60,fila.getCell(6).getNumericCellValue());assertEquals("CON_SALDO",fila.getCell(7).getStringCellValue());
+        }
+        try(var c=ds.getConnection();var p=c.prepareStatement("DELETE FROM venta_estado_historial WHERE operacion=?")) { p.setObject(1,op);p.executeUpdate(); }
+        var incompleto=carpeta.resolve("sin-historial.xls");new ReporteService(ds).exportar(java.time.LocalDate.of(2026,2,1),java.time.LocalDate.of(2026,2,28),incompleto);
+        try(var in=java.nio.file.Files.newInputStream(incompleto);var libro=new org.apache.poi.hssf.usermodel.HSSFWorkbook(in)) {
+            var fila=libro.getSheet("Operaciones").getRow(1);assertNull(fila.getCell(5));assertNull(fila.getCell(6));assertEquals("NO DISPONIBLE",fila.getCell(7).getStringCellValue());
+        }
+    }
+    @Test void reporteNoPresentaComoHistoricoUnCierrePosterior(@org.junit.jupiter.api.io.TempDir java.nio.file.Path carpeta) throws Exception {
+        var dia=java.time.LocalDate.of(2026,2,1);var turno=UUID.randomUUID();
+        var anterior=new CajaService(new TurnoPostgresRepository(ds),Clock.fixed(java.time.Instant.parse("2026-02-01T17:00:00Z"),java.time.ZoneOffset.UTC));
+        anterior.abrir(UUID.randomUUID(),turno,"Prueba",dia,"Ana",n("100"));
+        var siguiente=new CajaService(new TurnoPostgresRepository(ds),Clock.fixed(java.time.Instant.parse("2026-02-02T17:00:00Z"),java.time.ZoneOffset.UTC));
+        siguiente.cerrar(UUID.randomUUID(),turno,siguiente.consultar(turno).turno().version(),n("100"),"Ana","");
+        var ruta=carpeta.resolve("anterior.xls");new ReporteService(ds).exportar(dia,dia,ruta);
+        try(var in=java.nio.file.Files.newInputStream(ruta);var libro=new org.apache.poi.hssf.usermodel.HSSFWorkbook(in)) {
+            var fila=libro.getSheet("Cuadres").getRow(1);assertFalse(fila.getCell(4).getBooleanCellValue());
+            assertNull(fila.getCell(5));assertNull(fila.getCell(6));
+        }
+    }
+    @Test void migracionDeEstadoConservaOperacionAnteriorYRegistraCambios() throws Exception {
+        try(var c=ds.getConnection();var s=c.createStatement()) {
+            s.execute("DROP TRIGGER venta_estado_auditoria ON venta_operacion");
+            s.execute("DROP FUNCTION auditar_venta_estado()");
+            s.execute("DROP TABLE venta_estado_historial");
+            s.execute("DELETE FROM app_migracion WHERE version=13");
+        }
+        var reloj=Clock.systemUTC();var caja=new CajaService(new TurnoPostgresRepository(ds),reloj);var turno=UUID.randomUUID();var op=UUID.randomUUID();
+        caja.abrir(UUID.randomUUID(),turno,"Prueba",java.time.LocalDate.now(),"Ana",n("0"));
+        var item=new ItemOperacion("","","Artículo ficticio","unidad",n("1"),n("100"),"");
+        var ventas=new VentaService(ds,reloj);
+        ventas.registrar(UUID.randomUUID(),op,turno,Operacion.Modalidad.SEPARACION,new Documento(Documento.Tipo.NOTA_VENTA,"N-ANTERIOR",true),"Cliente","",java.util.List.of(item),java.util.Map.of(MedioPago.EFECTIVO,n("40")),n("40"),java.util.Map.of());
+        MigracionesPostgres.aplicar(ds);
+        ventas.abonar(UUID.randomUUID(),op,turno,java.util.Map.of(MedioPago.EFECTIVO,n("60")),n("60"));
+        try(var c=ds.getConnection();var p=c.prepareStatement("SELECT origen,estado,abonado FROM venta_estado_historial WHERE operacion=? ORDER BY secuencia")) {
+            p.setObject(1,op);try(var r=p.executeQuery()) {
+                assertTrue(r.next());assertEquals("MIGRACION",r.getString(1));assertEquals("CON_SALDO",r.getString(2));igual("40",r.getBigDecimal(3));
+                assertTrue(r.next());assertEquals("OPERACION",r.getString(1));assertEquals("PAGADA",r.getString(2));igual("100",r.getBigDecimal(3));assertFalse(r.next());
+            }
+        }
+    }
+    @Test void cuentaLimitadaPuedeOperarEnSuEsquemaSinCrearBases() throws Exception {
+        String rol="oper_"+UUID.randomUUID().toString().replace("-","");String clave=UUID.randomUUID().toString().replace("-","");
+        try(var c=ds.getConnection();var s=c.createStatement()) {
+            s.execute("CREATE ROLE "+rol+" LOGIN PASSWORD '"+clave+"' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION");
+            s.execute("CREATE SCHEMA "+rol+" AUTHORIZATION "+rol);
+        }
+        try {
+            var limitada=com.surquillo.inventariocaja.configuracion.PreparacionBeta.preparar(System.getenv("STOCK_TEST_URL"),rol,clave,rol);
+            var caja=new CajaService(new TurnoPostgresRepository(limitada),Clock.systemUTC());var turno=UUID.randomUUID();
+            caja.abrir(UUID.randomUUID(),turno,"Prueba",java.time.LocalDate.now(),"Ana",n("50"));
+            caja.pagarSueldo(UUID.randomUUID(),turno,"Luis","",n("20"));igual("30",caja.efectivoEsperado(turno));
+            try(var c=limitada.getConnection();var s=c.createStatement()) { assertThrows(java.sql.SQLException.class,()->s.execute("CREATE DATABASE prohibida_prueba")); }
+        } finally {
+            try(var c=ds.getConnection();var s=c.createStatement()) { s.execute("DROP SCHEMA IF EXISTS "+rol+" CASCADE");s.execute("DROP ROLE IF EXISTS "+rol); }
+        }
+    }
     @Test void cajaRevierteMovimientoCuandoFallaUnaLinea() throws Exception {
         var caja=new CajaService(new TurnoPostgresRepository(ds),Clock.systemUTC()); var turno=UUID.randomUUID();
         caja.abrir(UUID.randomUUID(),turno,"Caja A",java.time.LocalDate.now(),"Encargado",n("0"));

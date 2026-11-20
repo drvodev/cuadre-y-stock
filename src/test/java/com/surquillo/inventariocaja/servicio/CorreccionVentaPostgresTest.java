@@ -91,6 +91,18 @@ class CorreccionVentaPostgresTest {
         igual("30",caja.consultar(turno).movimientos().getFirst().importes().get(MedioPago.EFECTIVO));
         assertEquals(cierreAnterior,caja.consultar(turnoAnterior));
     }
+    @Test void reporteMensualSeparaCobroOriginalCambioYFlujoReal(@org.junit.jupiter.api.io.TempDir java.nio.file.Path carpeta)throws Exception{
+        cambio("120","90","30","30","NC1");
+        var archivo=carpeta.resolve("noviembre.xls");new ReporteService(ds).exportar(LocalDate.of(2026,11,1),LocalDate.of(2026,11,30),archivo);
+        try(var in=java.nio.file.Files.newInputStream(archivo);var libro=new org.apache.poi.hssf.usermodel.HSSFWorkbook(in)){
+            var cobros=libro.getSheet("Cobros");double suma=0;for(int i=1;i<=cobros.getLastRowNum();i++) suma+=cobros.getRow(i).getCell(6).getNumericCellValue();
+            assertEquals(130,suma);
+            var cambios=libro.getSheet("Anulaciones y cambios");var fila=cambios.getRow(1);
+            assertEquals("CAMBIO",fila.getCell(2).getStringCellValue());assertEquals("N1",fila.getCell(4).getStringCellValue());
+            assertEquals(90,fila.getCell(6).getNumericCellValue());assertEquals(120,fila.getCell(7).getNumericCellValue());assertEquals(30,fila.getCell(8).getNumericCellValue());
+            assertEquals("NC1",fila.getCell(11).getStringCellValue());
+        }
+    }
     @Test void cambioConReintegroSoloDevuelveLaDiferencia(){
         var nota=cambio("60","90","30","0","NC1");
         igual("-30",nota.diferencia());igual("70",caja.efectivoEsperado(turno));igual("60",ventas.consultar(nota.reemplazo()).total());

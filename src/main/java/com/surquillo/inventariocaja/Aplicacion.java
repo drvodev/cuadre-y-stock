@@ -15,7 +15,7 @@ public class Aplicacion extends Application {
     private Stage escenario;
     @Override
     public void start(Stage escenario) {
-        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta en desarrollo 0.1.4");
+        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta en desarrollo 0.1.5");
         var host=Ui.campo("127.0.0.1");host.setText("127.0.0.1");var puerto=Ui.campo("5432");puerto.setText("5432");var base=Ui.campo("postgres");base.setText("postgres");var usuario=Ui.campo("postgres");usuario.setText("postgres");var clave=new PasswordField();var esquema=Ui.campo("cuadre_pruebas");esquema.setText("cuadre_pruebas");var estado=new Label("La contraseña se usa solo en esta sesión. No la escribas en el chat.");
         var conectar=new Button("Conectar e iniciar pruebas");
         conectar.setOnAction(e->{
@@ -37,7 +37,7 @@ public class Aplicacion extends Application {
         boton.setDisable(true);estado.setText("Conectando y verificando las tablas…");
         Task<javax.sql.DataSource> tarea=new Task<>() {protected javax.sql.DataSource call() throws Exception{return PreparacionBeta.preparar(url,usuario,clave,esquema);}};
         tarea.setOnSucceeded(e->{try{principal(new SesionBeta(tarea.getValue()),esquema,url,usuario,clave);}catch(Exception error){boton.setDisable(false);estado.setText("No se pudo abrir la sesión.");Ui.accion(()->{throw new IllegalArgumentException(error.getMessage());});}});
-        tarea.setOnFailed(e->{boton.setDisable(false);estado.setText("No se pudo conectar. Revisa usuario, contraseña, puerto y esquema. No se guardó la contraseña.");Ui.informar("No se pudo preparar la base de pruebas. Revisa la conexión y que el usuario pueda crear un esquema nuevo. Si el esquema tenía tablas antiguas, usa otro nombre.");});
+        tarea.setOnFailed(e->{boton.setDisable(false);estado.setText("No se pudo conectar. Revisa usuario, contraseña, puerto y esquema. No se guardó la contraseña.");Ui.informar("No se pudo preparar la base. Revisa la conexión y los permisos del usuario sobre el esquema. Si el esquema tenía tablas antiguas, usa otro nombre.");});
         var hilo=new Thread(tarea,"conexion-beta");hilo.setDaemon(true);hilo.start();
     }
     private void principal(SesionBeta sesion,String esquema,String url,String usuario,String clave){
@@ -52,7 +52,7 @@ public class Aplicacion extends Application {
         var productos = new Tab("Catálogo", catalogo.crear());
         tabs.getTabs().addAll(cierre, stock, productos, nueva, new Tab("Compras",new CompraView(sesion).crear()),
             new Tab("Devoluciones y cambios",new CorreccionesView(sesion).crear()), historial,
-            new Tab("Respaldos",new RespaldoView(url,usuario,clave,esquema).crear()));
+            new Tab("Reportes",new ReporteView(sesion).crear()), new Tab("Respaldos",new RespaldoView(url,usuario,clave,esquema).crear()));
         tabs.getSelectionModel().selectedItemProperty().addListener((o, anterior, actual) -> Ui.accion(() -> {
             if (actual == historial) operaciones.refrescar();
             if (actual == cierre) caja.cargarTurnos();
@@ -63,7 +63,7 @@ public class Aplicacion extends Application {
         demo.setOnAction(event -> Ui.accion(()->{if(!Ui.confirmar("¿Añadir artículos DEMO y sus existencias iniciales? No se sobrescribirán los artículos existentes."))return;try{new DatosDemostracionService(sesion.ds,sesion.reloj).cargar();catalogo.refrescar();Ui.informar("Datos DEMO listos. Almacén: Surquillo.");}catch(Exception e){throw new IllegalArgumentException("No se pudo cargar la demostración");}}));
 
         var ayuda = new MenuItem("Funciones pendientes");
-        ayuda.setOnAction(e -> Ui.informar("Esta versión permite probar catálogo, stock, compras, ventas, separaciones, devoluciones, cambios, cierre y respaldos manuales. Reportes Excel siguen pendientes."));
+        ayuda.setOnAction(e -> Ui.informar("Esta versión permite probar catálogo, stock, compras, ventas, separaciones, devoluciones, cambios, cierre, reportes Excel y respaldos manuales."));
         var opciones = new MenuButton("Pruebas", null, demo, ayuda);
         var entorno = new Label("Esquema de pruebas · " + esquema);
         entorno.getStyleClass().add("muted");
