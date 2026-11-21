@@ -1,6 +1,6 @@
 # Cuadre y Stock
 
-> **Rama de trabajo:** beta 0.1.6 con mejoras del issue 1, aún en revisión. El instalador opcional de PostgreSQL requiere prueba en una instalación limpia y las imágenes de catálogo continúan pendientes. Ver [alcance y estado de la propuesta](docs/ISSUE-1-MEJORAS.md). Estos cambios no están fusionados en `main`.
+> **Beta 0.1.6:** incluye mejoras del issue 1. El instalador opcional de PostgreSQL requiere prueba en una instalación limpia y las imágenes de catálogo continúan pendientes. Ver [alcance y estado de las mejoras](docs/ISSUE-1-MEJORAS.md).
 
 **Inventario y caja para llevar el control diario de una tienda desde una sola aplicación.** Registra productos, compras y ventas; consulta lo disponible y cierra el turno con el efectivo y los medios de pago separados.
 
@@ -35,7 +35,7 @@ La aplicación se está preparando para un equipo local. Se debe comprobar la be
 
 La suite del **19 de noviembre de 2026** ejecutó **117 pruebas sin fallos ni omisiones**, con PostgreSQL 17 aislado. Cubrió reglas de caja y stock, operaciones, compras, correcciones, reportes, concurrencia y respaldo/recuperación. El ejecutable 0.1.5 abrió hasta la pantalla de conexión; las pantallas nuevas y el recorrido completo todavía requieren aceptación manual en el equipo de trabajo.
 
-Para la rama 0.1.6, la suite definitiva ejecutó 127 pruebas sin fallos ni omisiones con PostgreSQL aislado. El agente de pruebas verificó además de forma independiente los reintentos y la migración de SKU. El ejecutable final 0.1.6 abrió hasta la pantalla de conexión; se requiere revisión de los formularios nuevos.
+Para la versión 0.1.6, la suite definitiva ejecutó 127 pruebas sin fallos ni omisiones con PostgreSQL aislado. El agente de pruebas verificó además de forma independiente los reintentos y la migración de SKU. El ejecutable final 0.1.6 abrió hasta la pantalla de conexión; se requiere revisión de los formularios nuevos.
 
 Los reportes calculan el stock al final del período elegido. El historial de estado y abonos se registra desde la migración 13; para fechas anteriores sin ese historial el reporte indica **«no disponible»**. Las copias y los reportes contienen datos del negocio y la aplicación no los cifra.
 

@@ -1,6 +1,6 @@
 # Mejoras del issue 1: estado de la propuesta
 
-Esta rama está en revisión y no modifica la beta 0.1.5 publicada. Antes de usarla con una base existente, generar una copia y probar la actualización y la recuperación sobre otra base.
+La beta 0.1.6 incluye estas mejoras y no modifica la beta 0.1.5 publicada. Antes de usarla con una base existente, generar una copia y probar la actualización y la recuperación sobre otra base.
 
 ## Incluido
 
@@ -30,6 +30,6 @@ En el repositorio el archivo está en `tools/`. El instalador es opcional y solo
 - Imágenes de artículos, señaladas como prioridad baja en el issue.
 - Revisión manual de las pantallas y aceptación en el equipo de trabajo. Las pruebas automatizadas no sustituyen esa revisión.
 
-No se deben fusionar estos cambios hasta revisar los resultados y el comportamiento de la migración. La copia manual y la recuperación en una base diferente siguen siendo los procedimientos previos a cualquier actualización con datos reales.
+La copia manual y la recuperación en una base diferente siguen siendo los procedimientos previos a cualquier actualización con datos reales.
 
 La suite definitiva de Maven para 0.1.6 ejecutó 127 pruebas sin fallos ni omisiones con PostgreSQL aislado. Los resultados no acreditan el funcionamiento visual ni la ejecución del instalador interactivo en el equipo del negocio. La revisión independiente del agente de pruebas y sus límites están descritos en BETA-0.1.6.md.

@@ -8,6 +8,6 @@ El agente de pruebas reprodujo la duplicación de un artículo cuando se perdía
 
 La imagen opcional de catálogo sigue pendiente, como prioridad baja. Las pantallas nuevas, el instalador gráfico en un equipo limpio y la recuperación con una cuenta limitada requieren aceptación manual. Antes de actualizar una base existente, se debe crear una copia y probar su recuperación en una base diferente. La migración 14 conserva los códigos conocidos y no renumera artículos; las versiones anteriores no deben conectarse al esquema migrado.
 
-El código se mantiene en la rama del PR 2; no se fusiona automáticamente con `main`. La beta es para probar con datos ficticios, no para producción.
+El código se revisó en el PR 2. La beta es para probar con datos ficticios, no para producción.
 
 La suite definitiva ejecutó 127 pruebas sin fallos ni omisiones con PostgreSQL 17 aislado. El agente de pruebas verificó independientemente cinco escenarios de SKU, incluido el reintento después de perder la respuesta, antes de que se añadiera el bloqueo de tabla en la migración; la suite definitiva sí incluye ese bloqueo. El ejecutable final 0.1.6 abrió hasta la pantalla de conexión. La recuperación de una copia y la instalación interactiva con la cuenta y equipo definitivos siguen pendientes.
