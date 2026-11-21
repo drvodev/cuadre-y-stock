@@ -60,4 +60,22 @@ class InventarioServiceTest {
             igual("-1", movimientos.get(1).cambioFisico().add(movimientos.get(2).cambioFisico()));
         } finally { pool.shutdownNow(); }
     }
+    @Test void ajusteRapidoEsUnAjusteRealYDetectaUnSaldoObsoleto() {
+        servicio.iniciar(UUID.randomUUID(),clave,false,n("4"),"");
+        var solicitud=UUID.randomUUID();var ajuste=servicio.ajustarDisponible(solicitud,clave,n("4"),n("2"),"Conteo físico");
+        igual("2",ajuste.saldo().disponible());igual("-2",ajuste.movimiento().cambioFisico());
+        assertEquals(Tipo.AJUSTE,ajuste.movimiento().tipo());
+        assertEquals(ajuste,servicio.ajustarDisponible(solicitud,clave,n("4.00"),n("2.0"),"Conteo físico"));
+        assertThrows(ValidacionException.class,()->servicio.ajustarDisponible(UUID.randomUUID(),clave,n("4"),n("3"),"Obsoleto"));
+        assertThrows(ValidacionException.class,()->servicio.ajustarDisponible(UUID.randomUUID(),clave,n("2"),n("-1"),"Negativo"));
+        assertEquals(2,servicio.historial(clave).size());
+    }
+    @Test void ajusteRapidoConservaLasReservas() {
+        var repo=new StockMemoriaRepository();var reloj=Clock.systemUTC();
+        var inventario=new InventarioService(repo,reloj);inventario.iniciar(UUID.randomUUID(),clave,false,n("4"),"");
+        new ReservaService(repo,reloj,id->{}).crear(UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),clave,n("2"),n("2"));
+        var ajustado=inventario.ajustarDisponible(UUID.randomUUID(),clave,n("2"),n("1"),"Conteo");
+        igual("3",ajustado.saldo().fisico());igual("2",ajustado.saldo().reservado());igual("1",ajustado.saldo().disponible());
+        assertThrows(ValidacionException.class,()->inventario.ajustar(UUID.randomUUID(),clave,n("1"),"Invadir reserva"));
+    }
 }

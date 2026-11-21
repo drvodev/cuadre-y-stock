@@ -30,7 +30,7 @@ public class StockView {
         almacen.setText("Surquillo");
         var formulario = new GridPane(); formulario.setHgap(10); formulario.setVgap(10);
         formulario.addRow(0,new Label("SKU"),sku,new Label("Almacén"),almacen);
-        formulario.addRow(1,new Label("Cantidad"),cantidad);
+        formulario.addRow(1,new Label("Cantidad / nuevo stock físico"),cantidad);
         formulario.addRow(2,new Label("Stock mínimo"),minimo,Ui.boton("Guardar mínimo",()->{controlador.configurarMinimo(sku.getText(),almacen.getText(),Ui.numero(minimo.getText()));actualizar();}));
         var consultar=new Button("Consultar"); consultar.setOnAction(e->ejecutar(this::actualizar));
         var inicial=new Button("Stock inicial"); inicial.setOnAction(e->ejecutar(()->{
@@ -39,7 +39,7 @@ public class StockView {
         var compra=new Button("Entrada por compra"); compra.setOnAction(e->entrada(MovimientoStock.Tipo.COMPRA));
         var fabricacion=new Button("Entrada por fabricación"); fabricacion.setOnAction(e->entrada(MovimientoStock.Tipo.FABRICACION));
         var ajustar=new Button("Ajustar stock"); ajustar.setOnAction(e->{
-            var motivo=new TextInputDialog(); motivo.setTitle("Ajuste de stock"); motivo.setHeaderText("Indica el motivo del ajuste");
+            var motivo=new TextInputDialog(); motivo.setTitle("Ajuste de stock"); motivo.setHeaderText("La cantidad será el nuevo stock físico. Indica el motivo.");
             Ui.tema(motivo).showAndWait().ifPresent(texto->ejecutar(()->{
                 controlador.ajustar(ajusteId,sku.getText(),almacen.getText(),numero(),texto); ajusteId=UUID.randomUUID();cantidad.clear();actualizar();
             }));
@@ -56,6 +56,9 @@ public class StockView {
         var raiz=new VBox(12,new Label("Stock"),formulario,new HBox(8,consultar,inicial,compra,fabricacion,ajustar),saldo,
             new HBox(8,corte,consultarCorte),new Label("Movimientos"),movimientos,masMovimientos);
         raiz.setPadding(new Insets(16)); VBox.setVgrow(movimientos,Priority.ALWAYS); return raiz;
+    }
+    public void seleccionar(String codigo,String ubicacion) {
+        sku.setText(codigo);almacen.setText(ubicacion);ejecutar(this::actualizar);
     }
     private void entrada(MovimientoStock.Tipo tipo) {
         var referencia=new TextInputDialog(); referencia.setTitle("Entrada de stock"); referencia.setHeaderText("Referencia de la entrada (opcional)");

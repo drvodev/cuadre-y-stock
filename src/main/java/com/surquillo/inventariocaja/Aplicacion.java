@@ -7,6 +7,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import com.surquillo.inventariocaja.vista.*;
 import com.surquillo.inventariocaja.configuracion.PreparacionBeta;
+import com.surquillo.inventariocaja.configuracion.PreferenciasConexion;
 import com.surquillo.inventariocaja.servicio.DatosDemostracionService;
 import javafx.concurrent.Task;
 
@@ -16,11 +17,13 @@ public class Aplicacion extends Application {
     @Override
     public void start(Stage escenario) {
         this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta en desarrollo 0.1.5");
-        var host=Ui.campo("127.0.0.1");host.setText("127.0.0.1");var puerto=Ui.campo("5432");puerto.setText("5432");var base=Ui.campo("postgres");base.setText("postgres");var usuario=Ui.campo("postgres");usuario.setText("postgres");var clave=new PasswordField();var esquema=Ui.campo("cuadre_pruebas");esquema.setText("cuadre_pruebas");var estado=new Label("La contraseña se usa solo en esta sesión. No la escribas en el chat.");
+        var preferencias=new PreferenciasConexion(java.util.prefs.Preferences.userNodeForPackage(Aplicacion.class));var guardado=preferencias.cargar();
+        var host=Ui.campo("127.0.0.1");host.setText(guardado.servidor());var puerto=Ui.campo("5432");puerto.setText(guardado.puerto());var base=Ui.campo("postgres");base.setText(guardado.base());var usuario=Ui.campo("postgres");usuario.setText(guardado.usuario());var clave=new PasswordField();var esquema=Ui.campo("cuadre_pruebas");esquema.setText(guardado.esquema());var estado=new Label("La contraseña se usa solo en esta sesión. No la escribas en el chat.");
         var conectar=new Button("Conectar e iniciar pruebas");
         conectar.setOnAction(e->{
             if(!host.getText().matches("[a-zA-Z0-9.:-]+")||!puerto.getText().matches("[0-9]{1,5}")||!base.getText().matches("[a-zA-Z0-9_-]+")){Ui.informar("Revisa servidor, puerto y base de datos.");return;}
-            conectar("jdbc:postgresql://"+host.getText()+":"+puerto.getText()+"/"+base.getText(),usuario.getText(),clave.getText(),esquema.getText(),conectar,estado);
+            var datos=new PreferenciasConexion.Datos(host.getText(),puerto.getText(),base.getText(),usuario.getText(),esquema.getText());
+            conectar("jdbc:postgresql://"+datos.servidor()+":"+datos.puerto()+"/"+datos.base(),datos.usuario(),clave.getText(),esquema.getText(),conectar,estado,()->preferencias.guardar(datos));
         });
         var form=new GridPane();form.setHgap(12);form.setVgap(12);form.addRow(0,new Label("Servidor"),host,new Label("Puerto"),puerto);form.addRow(1,new Label("Base de datos"),base,new Label("Usuario PostgreSQL"),usuario);form.addRow(2,new Label("Contraseña"),clave);form.addRow(3,new Label("Esquema de tus pruebas"),esquema);
         conectar.getStyleClass().add("primary-action");
@@ -31,12 +34,12 @@ public class Aplicacion extends Application {
         panel.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         escena(new StackPane(panel));
         escenario.show();
-        var env=System.getenv();if(env.containsKey("APP_DB_URL")&&env.containsKey("APP_DB_PASSWORD"))conectar(env.get("APP_DB_URL"),env.get("APP_DB_USER"),env.get("APP_DB_PASSWORD"),env.getOrDefault("APP_DB_SCHEMA","cuadre_pruebas"),conectar,estado);
+        var env=System.getenv();if(env.containsKey("APP_DB_URL")&&env.containsKey("APP_DB_PASSWORD"))conectar(env.get("APP_DB_URL"),env.get("APP_DB_USER"),env.get("APP_DB_PASSWORD"),env.getOrDefault("APP_DB_SCHEMA","cuadre_pruebas"),conectar,estado,()->{});
     }
-    private void conectar(String url,String usuario,String clave,String esquema,Button boton,Label estado){
+    private void conectar(String url,String usuario,String clave,String esquema,Button boton,Label estado,Runnable recordar){
         boton.setDisable(true);estado.setText("Conectando y verificando las tablas…");
         Task<javax.sql.DataSource> tarea=new Task<>() {protected javax.sql.DataSource call() throws Exception{return PreparacionBeta.preparar(url,usuario,clave,esquema);}};
-        tarea.setOnSucceeded(e->{try{principal(new SesionBeta(tarea.getValue()),esquema,url,usuario,clave);}catch(Exception error){boton.setDisable(false);estado.setText("No se pudo abrir la sesión.");Ui.accion(()->{throw new IllegalArgumentException(error.getMessage());});}});
+        tarea.setOnSucceeded(e->{try{principal(new SesionBeta(tarea.getValue()),esquema,url,usuario,clave);try{recordar.run();}catch(RuntimeException ignorado){/* La conexión sigue disponible si el sistema no permite guardar preferencias. */}}catch(Exception error){boton.setDisable(false);estado.setText("No se pudo abrir la sesión.");Ui.accion(()->{throw new IllegalArgumentException(error.getMessage());});}});
         tarea.setOnFailed(e->{boton.setDisable(false);estado.setText("No se pudo conectar. Revisa usuario, contraseña, puerto y esquema. No se guardó la contraseña.");Ui.informar("No se pudo preparar la base. Revisa la conexión y los permisos del usuario sobre el esquema. Si el esquema tenía tablas antiguas, usa otro nombre.");});
         var hilo=new Thread(tarea,"conexion-beta");hilo.setDaemon(true);hilo.start();
     }

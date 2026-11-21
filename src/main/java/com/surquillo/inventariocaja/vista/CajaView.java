@@ -18,6 +18,7 @@ public class CajaView {
     private final DatePicker fecha=new DatePicker();
     private final ComboBox<Turno> turnos=new ComboBox<>();
     private final Label resumen=new Label("Abre un turno para comenzar");
+    private final Label ingresosResumen=new Label();
     private record Fila(LibroCajaRepository.Documento documento, String comprobante, String descripcion, String pago, String ganancia) {}
     private final TableView<Fila> libro = new TableView<>();
     private final LibroCajaRepository documentos;
@@ -70,7 +71,7 @@ public class CajaView {
         if (registrarAbono != null) acciones.getChildren().add(Ui.boton("Registrar abono", registrarAbono));
         acciones.getChildren().add(editar);
         var raiz = Ui.panel(titulo, new FlowPane(8, 8, turnos, Ui.boton("Actualizar turno", this::cargarTurnos)),
-                abrirTurno, resumen, libro, acciones, tienda, personal, otros, conteo, cierreGuardado);
+                abrirTurno, resumen, ingresosResumen, libro, acciones, tienda, personal, otros, conteo, cierreGuardado);
         cargarTurnos();
         return Ui.desplazar(raiz);
     }
@@ -181,11 +182,17 @@ public class CajaView {
         abrirTurno.setExpanded(mostrado == null);
         cierreGuardado.setText("");
         if (mostrado == null) {
-            libro.getItems().clear(); resumen.setText("Abre un turno o selecciona uno anterior."); return;
+            libro.getItems().clear(); ingresosResumen.setText(""); resumen.setText("Abre un turno o selecciona uno anterior."); return;
         }
         var t = mostrado.turno();
         var efectivo = t.fondoInicial().add(sesion.caja.flujo(mostrado).get(MedioPago.EFECTIVO));
         resumen.setText((abierto ? "Turno abierto" : "Turno cerrado") + "   ·   Efectivo esperado   S/ " + efectivo.toPlainString());
+        var ingresos=sesion.caja.ingresos(mostrado);
+        var general=ingresos.values().stream().reduce(BigDecimal.ZERO,BigDecimal::add);
+        ingresosResumen.setWrapText(true);
+        ingresosResumen.setText("Ingresos brutos (sin fondo ni egresos) · Efectivo S/ "+ingresos.get(MedioPago.EFECTIVO)+" · Visa S/ "+ingresos.get(MedioPago.VISA)
+                +" · Transferencia/Depósito S/ "+ingresos.get(MedioPago.TRANSFERENCIA).add(ingresos.get(MedioPago.DEPOSITO))
+                +" · Yape/Plin S/ "+ingresos.get(MedioPago.YAPE).add(ingresos.get(MedioPago.PLIN))+" · Total S/ "+general.toPlainString());
         resumen.getStyleClass().remove("section-title"); resumen.getStyleClass().add("section-title");
         Map<UUID, LibroCajaRepository.Documento> docs = documentos.documentos(id);
         var filas = new ArrayList<Fila>();

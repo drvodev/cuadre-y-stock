@@ -45,6 +45,22 @@ public class InventarioService {
         return cambiar(id, clave, Tipo.AJUSTE, nuevoFisico, "", motivo, true);
     }
 
+    /** Ajusta disponible con comprobación optimista dentro de la transacción del saldo. */
+    public StockRepository.Estado ajustarDisponible(UUID id,ClaveStock clave,BigDecimal esperado,BigDecimal nuevoDisponible,String motivo) {
+        Objects.requireNonNull(id);Objects.requireNonNull(clave);
+        if(esperado==null||nuevoDisponible==null)throw new ValidacionException("Cantidad obligatoria");
+        String razon=texto(motivo);if(razon.isBlank())throw new ValidacionException("El motivo es obligatorio");
+        String firma=huella("AJUSTE_DISPONIBLE",numero(esperado),numero(nuevoDisponible),razon);
+        return repositorio.registrar(id,firma,clave,anterior->{
+            var saldo=anterior.orElseThrow(()->new ValidacionException("Stock no registrado"));
+            SaldoStock.validarCantidad(esperado,saldo.permiteFraccion());SaldoStock.validarCantidad(nuevoDisponible,saldo.permiteFraccion());
+            if(saldo.disponible().compareTo(esperado)!=0)throw new ValidacionException("El stock cambió; actualiza y vuelve a revisar el ajuste");
+            if(esperado.compareTo(nuevoDisponible)==0)throw new ValidacionException("El ajuste debe cambiar la disponibilidad");
+            var nuevo=calculos.ajustar(saldo,saldo.reservado().add(nuevoDisponible),razon);
+            return estado(id,Tipo.AJUSTE,nuevo,saldo.fisico(),nuevo.fisico(),nuevo.fisico().subtract(saldo.fisico()),"",razon);
+        });
+    }
+
     public Optional<SaldoStock> consultar(ClaveStock clave) { return repositorio.buscar(clave); }
     public List<MovimientoStock> historial(ClaveStock clave) { return repositorio.historial(clave); }
     public List<MovimientoPaginado> historial(ClaveStock clave,long despues,int limite) {

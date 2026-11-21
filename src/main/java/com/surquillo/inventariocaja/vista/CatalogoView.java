@@ -14,7 +14,7 @@ public class CatalogoView {
     private TitledPane editor;
     private String siguienteCursor="";
     private final TextField buscar=Ui.campo("Buscar descripción, código o característica");
-    private final TextField sku=Ui.campo("SKU único"),descripcion=Ui.campo("Descripción"),tipo=Ui.campo("Modelo o tipo"),
+    private final TextField sku=Ui.campo("Vacío: SKU automático"),descripcion=Ui.campo("Descripción"),tipo=Ui.campo("Modelo o tipo"),
         contenido=Ui.campo("Contenido opcional"),unidadContenido=Ui.campo("kg, m²…"),precio=Ui.campo("Precio sugerido opcional"),
         costo=Ui.campo("Vacío si se desconoce");
     private final ComboBox<String> categoria=opcion("Categoría"),marca=opcion("Marca opcional"),
@@ -118,11 +118,12 @@ public class CatalogoView {
         valor(editor,actual);valor(filtro,actualFiltro);
     }
     private void guardar() {
-        var v=new Variante(sku.getText(),descripcion.getText(),texto(categoria),texto(marca),texto(presentacion),tipo.getText(),
+        boolean automatico=seleccionado==null&&sku.getText().isBlank();
+        var v=new Variante(automatico?"PENDIENTE":sku.getText(),descripcion.getText(),texto(categoria),texto(marca),texto(presentacion),tipo.getText(),
             texto(unidad),fraccion.isSelected(),origen.getValue(),Ui.opcional(contenido.getText()),unidadContenido.getText(),
             Ui.opcional(precio.getText()),Ui.opcional(costo.getText()),activo.isSelected(),seleccionado==null?0:seleccionado.version(),atributos.valores());
-        if(seleccionado==null)sesion.catalogo.crear(v);else sesion.catalogo.actualizar(v);
-        limpiar();cargarOpciones();buscarDesdeInicio();Ui.informar("Artículo guardado.");
+        Variante guardada=seleccionado==null?(automatico?new com.surquillo.inventariocaja.servicio.SkuAutomaticoService(sesion.ds,sesion.catalogo).crear(v):sesion.catalogo.crear(v)):sesion.catalogo.actualizar(v);
+        limpiar();cargarOpciones();buscarDesdeInicio();Ui.informar("Artículo guardado. SKU: "+guardada.sku());
     }
     private void cargar(Variante v) {
         editor.setExpanded(true);

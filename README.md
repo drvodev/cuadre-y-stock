@@ -1,5 +1,7 @@
 # Cuadre y Stock
 
+> **Rama de trabajo:** mejoras propuestas para el issue 1; el asistente opcional de PostgreSQL requiere prueba en una instalación limpia y las imágenes de catálogo continúan pendientes. Ver [alcance y estado de la propuesta](docs/ISSUE-1-MEJORAS.md). La beta publicada sigue siendo la 0.1.5.
+
 **Inventario y caja para llevar el control diario de una tienda desde una sola aplicación.** Registra productos, compras y ventas; consulta lo disponible y cierra el turno con el efectivo y los medios de pago separados.
 
 El proyecto nace de una necesidad real en Surquillo: encontrar las operaciones sin depender de varios cuadernos y reducir el trabajo manual del cuadre. Está desarrollado para Windows con Java, JavaFX y PostgreSQL.
