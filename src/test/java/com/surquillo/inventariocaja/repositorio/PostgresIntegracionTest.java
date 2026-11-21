@@ -261,7 +261,8 @@ class PostgresIntegracionTest {
         var plantilla=new Variante("999","Material","","","","","unidad",false,Variante.Origen.COMPRADO,null,"",n("20"),null,true,0);
         try(var c=ds.getConnection();var s=c.createStatement()) {
             s.execute("DROP TRIGGER catalogo_sku_no_reutilizar ON catalogo_variante");s.execute("DROP FUNCTION reservar_sku_catalogo()");
-            s.execute("DROP TABLE catalogo_sku_utilizado");s.execute("DROP SEQUENCE catalogo_sku_secuencia");s.execute("DELETE FROM app_migracion WHERE version=14");
+            s.execute("DROP TABLE catalogo_sku_utilizado");s.execute("DROP SEQUENCE catalogo_sku_secuencia");
+            s.execute("DROP TABLE catalogo_creacion_solicitud");s.execute("DELETE FROM app_migracion WHERE version IN (14,15)");
         }
         catalogo.crear(plantilla);MigracionesPostgres.aplicar(ds);
         var automatico=new SkuAutomaticoService(ds,catalogo);var creado=automatico.crear(plantilla);assertEquals("1000",creado.sku());
@@ -280,6 +281,49 @@ class PostgresIntegracionTest {
         catalogo.crear(plantilla);var automatico=new SkuAutomaticoService(ds,catalogo);
         assertEquals("001",automatico.crear(plantilla).sku());assertEquals("002",automatico.crear(plantilla).sku());
         assertEquals("MANUAL",catalogo.buscarSku("MANUAL").orElseThrow().sku());
+    }
+    @Test void skuAutomaticoContinuaDespuesDeUnCodigoManualAlto() {
+        var catalogo=new CatalogoService(new ProductoPostgresRepository(ds));
+        var plantilla=new Variante("999","Material","","","","","unidad",false,Variante.Origen.COMPRADO,null,"",n("20"),null,true,0);
+        catalogo.crear(plantilla);
+        assertEquals("1000",new SkuAutomaticoService(ds,catalogo).crear(UUID.randomUUID(),plantilla).sku());
+    }
+    @Test void migracion15RecogeSkuManualCreadoConVersion14() throws Exception {
+        try(var c=ds.getConnection();var s=c.createStatement()) {
+            s.execute("DROP TABLE catalogo_creacion_solicitud");s.execute("DELETE FROM app_migracion WHERE version=15");
+            s.execute("CREATE OR REPLACE FUNCTION reservar_sku_catalogo() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN INSERT INTO catalogo_sku_utilizado(sku) VALUES(NEW.sku); RETURN NEW; END; $$");
+        }
+        var catalogo=new CatalogoService(new ProductoPostgresRepository(ds));
+        var articulo=new Variante("999","Material","","","","","unidad",false,Variante.Origen.COMPRADO,null,"",n("20"),null,true,0);
+        catalogo.crear(articulo);MigracionesPostgres.aplicar(ds);
+        assertEquals("1000",new SkuAutomaticoService(ds,catalogo).crear(UUID.randomUUID(),articulo).sku());
+    }
+    @Test void skuAutomaticoRecuperaResultadoSiSePierdeRespuestaDelCommit() throws Exception {
+        var perdido=new java.util.concurrent.atomic.AtomicBoolean();
+        javax.sql.DataSource fallos=(javax.sql.DataSource)java.lang.reflect.Proxy.newProxyInstance(javax.sql.DataSource.class.getClassLoader(),new Class<?>[]{javax.sql.DataSource.class},(proxy,metodo,args)->{
+            Object resultado;try{resultado=metodo.invoke(ds,args);}catch(java.lang.reflect.InvocationTargetException e){throw e.getCause();}
+            if(!metodo.getName().equals("getConnection"))return resultado;
+            var conexion=(java.sql.Connection)resultado;
+            return java.lang.reflect.Proxy.newProxyInstance(java.sql.Connection.class.getClassLoader(),new Class<?>[]{java.sql.Connection.class},(pc,cm,ca)->{
+                Object valor;try{valor=cm.invoke(conexion,ca);}catch(java.lang.reflect.InvocationTargetException e){throw e.getCause();}
+                if(cm.getName().equals("commit")&&perdido.compareAndSet(false,true))throw new java.sql.SQLException("Respuesta de commit perdida");
+                return valor;
+            });
+        });
+        var catalogo=new CatalogoService(new ProductoPostgresRepository(fallos));var servicio=new SkuAutomaticoService(fallos,catalogo);
+        var articulo=new Variante("PENDIENTE","Material","","","","","unidad",false,Variante.Origen.COMPRADO,null,"",n("20"),null,true,0);
+        var solicitud=UUID.randomUUID();
+        assertThrows(PersistenciaException.class,()->servicio.crear(solicitud,articulo));
+        assertEquals("001",servicio.crear(solicitud,articulo).sku());
+        assertEquals(1,catalogo.buscar("Material","",10,true).size());
+        var cambiado=new Variante("PENDIENTE","Otro material","","","","","unidad",false,Variante.Origen.COMPRADO,null,"",n("20"),null,true,0);
+        assertThrows(ValidacionException.class,()->servicio.crear(solicitud,cambiado));
+        var pool=Executors.newFixedThreadPool(2);var inicio=new CountDownLatch(1);var id=UUID.randomUUID();
+        try {
+            Callable<Variante> tarea=()->{inicio.await();return servicio.crear(id,articulo);};var a=pool.submit(tarea);var b=pool.submit(tarea);inicio.countDown();
+            assertEquals(a.get(20,TimeUnit.SECONDS).sku(),b.get(20,TimeUnit.SECONDS).sku());
+            assertEquals(2,catalogo.buscar("Material","",10,true).size());
+        } finally {pool.shutdownNow();}
     }
     @Test void ajustesRapidosConcurrentesRechazanLaVistaObsoleta() throws Exception {
         inventario.iniciar(UUID.randomUUID(),clave,false,n("4"),"");

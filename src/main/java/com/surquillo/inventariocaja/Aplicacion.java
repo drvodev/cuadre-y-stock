@@ -16,7 +16,7 @@ public class Aplicacion extends Application {
     private Stage escenario;
     @Override
     public void start(Stage escenario) {
-        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta en desarrollo 0.1.5");
+        this.escenario=escenario;escenario.setTitle("Cuadre y Stock · Beta en desarrollo 0.1.6");
         var preferencias=new PreferenciasConexion(java.util.prefs.Preferences.userNodeForPackage(Aplicacion.class));var guardado=preferencias.cargar();
         var host=Ui.campo("127.0.0.1");host.setText(guardado.servidor());var puerto=Ui.campo("5432");puerto.setText(guardado.puerto());var base=Ui.campo("postgres");base.setText(guardado.base());var usuario=Ui.campo("postgres");usuario.setText(guardado.usuario());var clave=new PasswordField();var esquema=Ui.campo("cuadre_pruebas");esquema.setText(guardado.esquema());var estado=new Label("La contraseña se usa solo en esta sesión. No la escribas en el chat.");
         var conectar=new Button("Conectar e iniciar pruebas");

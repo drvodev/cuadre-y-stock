@@ -28,7 +28,11 @@ function Buscar-Binario {
     if ($enPath) { $posibles += Split-Path -Parent $enPath.Source }
     $raiz = Join-Path $env:ProgramFiles 'PostgreSQL'
     if (Test-Path -LiteralPath $raiz) {
-        $posibles += @(Get-ChildItem -LiteralPath $raiz -Directory | Sort-Object Name -Descending | ForEach-Object { Join-Path $_.FullName 'bin' })
+        $posibles += @(Get-ChildItem -LiteralPath $raiz -Directory | Sort-Object {
+            $numero = 0
+            [void][int]::TryParse(($_.Name -split '\.')[0], [ref]$numero)
+            $numero
+        } -Descending | ForEach-Object { Join-Path $_.FullName 'bin' })
     }
     foreach ($carpeta in $posibles) {
         if (Test-Path -LiteralPath (Join-Path $carpeta 'psql.exe') -PathType Leaf) { return $carpeta }

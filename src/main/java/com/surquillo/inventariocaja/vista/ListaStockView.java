@@ -43,7 +43,7 @@ public class ListaStockView {
         var gestion = new TitledPane("Movimientos y ajustes de stock", vistaStock.crear());
         gestion.setExpanded(false);
         tabla.setRowFactory(t->{var fila=new TableRow<Articulo>();fila.setOnMouseClicked(e->{
-            if(e.getClickCount()==2&&!fila.isEmpty()) { gestion.setExpanded(true);vistaStock.seleccionar(fila.getItem().sku(),almacen.getText()); }
+            if(e.getClickCount()==2&&!fila.isEmpty()) Ui.accion(()->{verificarAlmacen();gestion.setExpanded(true);vistaStock.seleccionar(fila.getItem().sku(),almacenAplicado);});
         });return fila;});
         var aumentar=Ui.boton("+ Disponibilidad",()->ajusteRapido(true));
         var reducir=Ui.boton("− Disponibilidad",()->ajusteRapido(false));
@@ -56,6 +56,7 @@ public class ListaStockView {
         return Ui.desplazar(Ui.panel(titulo, filtros, tabla, new FlowPane(8, 8, editar, aumentar, reducir, mas), gestion));
     }
     private void ajusteRapido(boolean aumentar) {
+        verificarAlmacen();
         var articulo=tabla.getSelectionModel().getSelectedItem();
         if(articulo.disponible()==null)throw new IllegalArgumentException("Registra primero el stock inicial.");
         var dialogo=new TextInputDialog("1");dialogo.setTitle("Ajustar disponibilidad");
@@ -68,8 +69,12 @@ public class ListaStockView {
         var razon=new TextInputDialog();razon.setTitle("Motivo del ajuste");razon.setHeaderText("Indica por qué cambió la existencia física.");
         var motivo=Ui.tema(razon).showAndWait();if(motivo.isEmpty())return;
         if(!Ui.confirmar("¿Cambiar la disponibilidad de "+articulo.disponible().toPlainString()+" a "+nuevo.toPlainString()+"?"))return;
-        sesion.stock.ajustarDisponible(ajusteRapidoId,articulo.sku(),almacen.getText(),articulo.disponible(),nuevo,motivo.get());
+        sesion.stock.ajustarDisponible(ajusteRapidoId,articulo.sku(),almacenAplicado,articulo.disponible(),nuevo,motivo.get());
         ajusteRapidoId=java.util.UUID.randomUUID();refrescar();
+    }
+    private void verificarAlmacen() {
+        if(almacenAplicado==null || !almacen.getText().strip().equals(almacenAplicado))
+            throw new IllegalArgumentException("El almacén cambió. Pulsa Buscar antes de continuar.");
     }
     private boolean esCosto() { return precio.getSelectionModel().getSelectedIndex() == 1; }
     private static String soles(BigDecimal n) { return n == null ? "Por definir" : "S/ " + n.setScale(2).toPlainString(); }

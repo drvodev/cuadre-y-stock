@@ -27,6 +27,7 @@ public class CatalogoView {
     private final ComboBox<FiltroCatalogo.Estado> estadoFiltro=new ComboBox<>();
     private final AtributosForm atributos=new AtributosForm(),atributosFiltro=new AtributosForm();
     private Variante seleccionado;
+    private java.util.UUID solicitudArticulo=java.util.UUID.randomUUID();
     private String cursor="";
     private FiltroCatalogo filtroAplicado;
     private final Label resumen=new Label();
@@ -122,7 +123,7 @@ public class CatalogoView {
         var v=new Variante(automatico?"PENDIENTE":sku.getText(),descripcion.getText(),texto(categoria),texto(marca),texto(presentacion),tipo.getText(),
             texto(unidad),fraccion.isSelected(),origen.getValue(),Ui.opcional(contenido.getText()),unidadContenido.getText(),
             Ui.opcional(precio.getText()),Ui.opcional(costo.getText()),activo.isSelected(),seleccionado==null?0:seleccionado.version(),atributos.valores());
-        Variante guardada=seleccionado==null?(automatico?new com.surquillo.inventariocaja.servicio.SkuAutomaticoService(sesion.ds,sesion.catalogo).crear(v):sesion.catalogo.crear(v)):sesion.catalogo.actualizar(v);
+        Variante guardada=seleccionado==null?(automatico?new com.surquillo.inventariocaja.servicio.SkuAutomaticoService(sesion.ds,sesion.catalogo).crear(solicitudArticulo,v):sesion.catalogo.crear(v)):sesion.catalogo.actualizar(v);
         limpiar();cargarOpciones();buscarDesdeInicio();Ui.informar("Artículo guardado. SKU: "+guardada.sku());
     }
     private void cargar(Variante v) {
@@ -135,7 +136,7 @@ public class CatalogoView {
         activo.setSelected(v.activo());atributos.cargar(v.atributos());
     }
     private void limpiar() {
-        seleccionado=null;tabla.getSelectionModel().clearSelection();
+        seleccionado=null;solicitudArticulo=java.util.UUID.randomUUID();tabla.getSelectionModel().clearSelection();
         for(var t:new TextField[]{sku,descripcion,tipo,contenido,unidadContenido,precio,costo})t.clear();
         valor(categoria,"");valor(marca,"");valor(presentacion,"");valor(unidad,"unidad");atributos.cargar(Map.of());
         sku.setDisable(false);unidad.setDisable(false);fraccion.setDisable(false);fraccion.setSelected(false);activo.setSelected(true);origen.setValue(Variante.Origen.COMPRADO);
