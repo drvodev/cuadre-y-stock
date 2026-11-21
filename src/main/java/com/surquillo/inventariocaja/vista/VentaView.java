@@ -16,6 +16,8 @@ public class VentaView {
     private final TextField numero=Ui.campo("Número manual del documento"),prefijo=Ui.campo("Prefijo para sugerir, p. ej. B"),cliente=Ui.campo("Cliente (obligatorio en separación)"),contacto=Ui.campo("Contacto opcional");
     private final TextField sku=Ui.campo("Opcional para ítems libres"),almacen=Ui.campo("Almacén"),descripcion=Ui.campo("Descripción del artículo"),unidad=Ui.campo("unidad, bolsa, caja…"),cantidad=Ui.campo("Cantidad"),precio=Ui.campo("Precio unitario"),indicaciones=Ui.campo("Indicaciones adicionales opcionales");
     private final Label total=new Label("Total S/ 0,00");
+    private final TextField buscarProducto=Ui.campo("Buscar nombre o SKU");
+    private final ComboBox<com.surquillo.inventariocaja.repositorio.ListaStockRepository.Articulo> productos=new ComboBox<>();
     private final PagosForm pagos=new PagosForm();
     private UUID solicitud=UUID.randomUUID(),operacion=UUID.randomUUID();
     private Map<Integer,BigDecimal> aceptadas;
@@ -25,12 +27,28 @@ public class VentaView {
         modo.getItems().setAll(Operacion.Modalidad.values());modo.setValue(Operacion.Modalidad.VENTA);documento.getItems().setAll(Documento.Tipo.values());documento.setValue(Documento.Tipo.BOLETA);prefijo.setText("B");almacen.setText("Surquillo");unidad.setText("unidad");cantidad.setText("1");
         modo.setOnAction(e->{if(modo.getValue()==Operacion.Modalidad.SEPARACION){documento.setValue(Documento.Tipo.NOTA_VENTA);prefijo.setText("N");}else{documento.setValue(Documento.Tipo.BOLETA);prefijo.setText("B");}});
         items.getColumns().add(Ui.columna("SKU",ItemOperacion::sku,130));items.getColumns().add(Ui.columna("Descripción",ItemOperacion::descripcion,260));items.getColumns().add(Ui.columna("Cantidad",ItemOperacion::cantidad,90));items.getColumns().add(Ui.columna("Precio",ItemOperacion::precio,90));items.getColumns().add(Ui.columna("Importe",ItemOperacion::total,100));items.setPrefHeight(220);
+        productos.setPrefWidth(480);productos.setPromptText("Selecciona un producto");
+        productos.setConverter(new javafx.util.StringConverter<>() {
+            public String toString(com.surquillo.inventariocaja.repositorio.ListaStockRepository.Articulo a) {
+                return a==null?"":a.sku()+" · "+a.producto()+" · Disponible: "+(a.disponible()==null?"sin iniciar":a.disponible().toPlainString())+" · Precio: "+(a.sugerido()==null?"por definir":a.sugerido().toPlainString());
+            }
+            public com.surquillo.inventariocaja.repositorio.ListaStockRepository.Articulo fromString(String texto){return null;}
+        });
+        productos.setOnAction(e->{var a=productos.getValue();if(a!=null){sku.setText(a.sku());descripcion.setText(a.producto());unidad.setText(a.unidad());precio.setText(a.sugerido()==null?"":a.sugerido().toPlainString());}});
+        buscarProducto.setOnAction(e->Ui.accion(this::buscarProductos));
         var form=new GridPane();form.setHgap(10);form.setVgap(10);
         form.addRow(0,new Label("SKU"),sku,Ui.boton("Buscar en catálogo",this::buscar),new Label("Almacén"),almacen);
         form.addRow(1,new Label("Descripción"),descripcion,new Label("Unidad"),unidad);
         form.addRow(2,new Label("Cantidad"),cantidad,new Label("Precio"),precio);
         form.addRow(3,new Label("Indicaciones"),indicaciones);
-        return Ui.desplazar(Ui.panel(new Label("Nueva venta o separación"),new HBox(10,modo,documento,prefijo,Ui.boton("Sugerir número",()->{sugerenciaActual=sesion.ventas.sugerirNumero(documento.getValue(),prefijo.getText()).orElseThrow(()->new IllegalArgumentException("Ingresa el primer número manualmente"));numero.setText(sugerenciaActual);})),numero,cliente,contacto,form,new HBox(10,Ui.boton("Añadir ítem",this::agregar),Ui.boton("Quitar seleccionado",()->{items.getItems().remove(items.getSelectionModel().getSelectedItem());aceptadas=null;actualizar();})),items,total,new Label("Pagos aplicados · en separación registra solo el abono de este momento"),pagos,new HBox(10,Ui.boton("Confirmar operación",this::confirmar),Ui.boton("Nueva operación",()->{if(Ui.confirmar("¿Limpiar el formulario? Si hubo un error de conexión, revisa primero Operaciones para comprobar si se guardó."))limpiar();}))));
+        return Ui.desplazar(Ui.panel(new Label("Nueva venta o separación"),new HBox(10,modo,documento,prefijo,Ui.boton("Sugerir número",()->{sugerenciaActual=sesion.ventas.sugerirNumero(documento.getValue(),prefijo.getText()).orElseThrow(()->new IllegalArgumentException("Ingresa el primer número manualmente"));numero.setText(sugerenciaActual);})),numero,cliente,contacto,new FlowPane(8,8,buscarProducto,Ui.boton("Buscar productos",this::buscarProductos),productos),form,new HBox(10,Ui.boton("Añadir ítem",this::agregar),Ui.boton("Quitar seleccionado",()->{items.getItems().remove(items.getSelectionModel().getSelectedItem());aceptadas=null;actualizar();})),items,total,new Label("Pagos aplicados · en separación registra solo el abono de este momento"),pagos,new HBox(10,Ui.boton("Confirmar operación",this::confirmar),Ui.boton("Nueva operación",()->{if(Ui.confirmar("¿Limpiar el formulario? Si hubo un error de conexión, revisa primero Operaciones para comprobar si se guardó."))limpiar();}))));
+    }
+    private void buscarProductos() {
+        var encontrados=new com.surquillo.inventariocaja.repositorio.ListaStockRepository(sesion.ds).buscar(almacen.getText(),buscarProducto.getText(),"");
+        productos.getItems().setAll(encontrados.subList(0,Math.min(100,encontrados.size())));
+        if(encontrados.isEmpty())throw new IllegalArgumentException("No se encontraron productos activos.");
+        if(encontrados.size()>100)Ui.informar("Se muestran 100 resultados. Precisa la búsqueda para encontrar otros productos.");
+        productos.show();
     }
     private void buscar() {
         var v=sesion.catalogo.buscarSku(sku.getText()).orElseThrow(()->new IllegalArgumentException("SKU no encontrado. Puedes usar una línea libre dejando SKU vacío."));

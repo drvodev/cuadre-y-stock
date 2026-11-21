@@ -34,6 +34,10 @@ public class StockController {
         Variante articulo=articulo(sku,false);
         return inventario.ajustar(solicitud,new ClaveStock(articulo.sku(),almacen),cantidad,motivo);
     }
+    public StockRepository.Estado ajustarDisponible(UUID solicitud,String sku,String almacen,BigDecimal esperado,BigDecimal nuevo,String motivo) {
+        Variante articulo=articulo(sku,false);
+        return inventario.ajustarDisponible(solicitud,new ClaveStock(articulo.sku(),almacen),esperado,nuevo,motivo);
+    }
     public Optional<SaldoStock> consultar(String sku,String almacen) {
         Variante articulo=articulo(sku,false);
         return inventario.consultar(new ClaveStock(articulo.sku(),almacen));

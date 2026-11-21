@@ -107,4 +107,13 @@ class CajaServiceTest {
             igual("30",caja.efectivoEsperado(turno)); assertEquals(1,caja.consultar(turno).movimientos().size());
         } finally { pool.shutdownNow(); }
     }
+    @Test void ingresosBrutosDistinguenFondoGastosYDevoluciones() {
+        abrir();caja.cobrar(UUID.randomUUID(),turno,n("50"),Map.of(MedioPago.EFECTIVO,n("20"),MedioPago.YAPE,n("30")),n("20"),"venta");
+        caja.registrar(UUID.randomUUID(),turno,MovimientoCaja.Tipo.DEVOLUCION,MovimientoCaja.Fuente.CAJA,Map.of(MedioPago.EFECTIVO,n("5")),"devolución");
+        egreso(MovimientoCaja.Tipo.GASTO,"10");
+        var ingresos=caja.ingresos(caja.consultar(turno));igual("20",ingresos.get(MedioPago.EFECTIVO));igual("30",ingresos.get(MedioPago.YAPE));
+        igual("105",caja.efectivoEsperado(turno));
+        var cierre=caja.cerrar(UUID.randomUUID(),turno,caja.consultar(turno).turno().version(),n("105"),"Ana","",Map.of(MedioPago.YAPE,new VerificacionMedio(n("30"),n("0"),n("0"),n("0"))));
+        assertEquals(ingresos,caja.ingresos(cierre));
+    }
 }

@@ -87,6 +87,14 @@ public class CajaService {
             movimiento.importes().forEach((medio,monto)->totales.merge(medio,movimiento.ingreso()?monto:monto.negate(),BigDecimal::add));
         return Map.copyOf(totales);
     }
+    /** Ingresos brutos del turno, sin fondo inicial, egresos ni devoluciones. */
+    public Map<MedioPago,BigDecimal> ingresos(TurnoRepository.Estado estado) {
+        Map<MedioPago,BigDecimal> totales=new EnumMap<>(MedioPago.class);
+        for(var medio:MedioPago.values())totales.put(medio,new BigDecimal("0.00"));
+        for(var movimiento:estado.movimientos())if(movimiento.fuente()==MovimientoCaja.Fuente.CAJA&&movimiento.ingreso())
+            movimiento.importes().forEach((medio,monto)->totales.merge(medio,monto,BigDecimal::add));
+        return Map.copyOf(totales);
+    }
     public TurnoRepository.Estado cerrar(UUID solicitud,UUID turno,long version,BigDecimal contado,String firma,String observacion) {
         return cerrar(solicitud,turno,version,contado,firma,observacion,Map.of());
     }
